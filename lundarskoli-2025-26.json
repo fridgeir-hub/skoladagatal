@@ -1,0 +1,1639 @@
+{
+  "weeks": [
+    {
+      "weekNumber": "32",
+      "dates": "4.-8. ágúst",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "4",
+          "events": [
+            "Frídagur verslunarmanna"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "5",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "6",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "7",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "8",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "33",
+      "dates": "11.-15. ágúst",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "11",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "12",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "13",
+          "events": [
+            "Fræðsludagur"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "14",
+          "events": [
+            "Fræðsludagur"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "15",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "weekNumber": "34",
+      "dates": "18.-22. ágúst",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "18",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "19",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "M",
+          "date": "20",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "F",
+          "date": "21",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "F",
+          "date": "22",
+          "events": [
+            "Skólasetning"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "35",
+      "dates": "25.-29. ágúst",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "25",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "26",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "27",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "28",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "29",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "36",
+      "dates": "1.-5. september",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "1",
+          "events": [
+            "Útivistardagur"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "2",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "3",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "4",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "5",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "37",
+      "dates": "8.-12. september",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "8",
+          "events": [
+            "Dagur læsis"
+          ],
+          "color": "lightblue"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "9",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "10",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "11",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "12",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "38",
+      "dates": "15.-19. september",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "15",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "16",
+          "events": [
+            "Dagur íslenskrar náttúru"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "17",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "18",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "19",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "39",
+      "dates": "22.-26. september",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "22",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "23",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "24",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "25",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "26",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "40",
+      "dates": "29. september - 3. október",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "29",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "30",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "1",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "2",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "3",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "41",
+      "dates": "6.-10. október",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "6",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "7",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "8",
+          "events": [
+            "Baráttudagur gegn einelti"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "9",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "10",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "42",
+      "dates": "13.-17. október",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "13",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "14",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "15",
+          "events": [
+            "Þemadagar"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "16",
+          "events": [
+            "Þemadagar"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "17",
+          "events": [
+            "Þemadagar"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "43",
+      "dates": "20.-24. október",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "20",
+          "events": [
+            "Haustfrí"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "21",
+          "events": [
+            "Haustfrí"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "M",
+          "date": "22",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "F",
+          "date": "23",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "24",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "44",
+      "dates": "27.-31. október",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "27",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "28",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "29",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "30",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "31",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "45",
+      "dates": "3.-7. nóvember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "3",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "4",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "5",
+          "events": [
+            "Samtöl"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "6",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "7",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "46",
+      "dates": "10.-14. nóvember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "10",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "11",
+          "events": [
+            "Fæðingardagur forseta Íslands"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "12",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "13",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "14",
+          "events": [
+            "Dagur stærðfræðinnar"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "47",
+      "dates": "17.-21. nóvember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "17",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "18",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "19",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "20",
+          "events": [
+            "Dagur mannréttinda barna"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "21",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "48",
+      "dates": "24.-28. nóvember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "24",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "25",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "26",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "27",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "28",
+          "events": [
+            "Jólaundirbúningur"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "49",
+      "dates": "1.-5. desember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "1",
+          "events": [
+            "Fullveldisdagurinn"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "2",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "M",
+          "date": "3",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "4",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "5",
+          "events": [
+            "Samtöl"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "50",
+      "dates": "8.-12. desember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "8",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "9",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "10",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "11",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "12",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "51",
+      "dates": "15.-19. desember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "15",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "16",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "17",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "18",
+          "events": [
+            "Rauður dagur"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "19",
+          "events": [
+            "Litlu jól"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "52",
+      "dates": "22.-26. desember",
+      "year": "2025",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "22",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "23",
+          "events": [
+            "Þorláksmessa"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "24",
+          "events": [
+            "Aðfangadagur jóla"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "F",
+          "date": "25",
+          "events": [
+            "Jóladagur"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "F",
+          "date": "26",
+          "events": [
+            "Annar í jólum"
+          ],
+          "color": "brown"
+        }
+      ]
+    },
+    {
+      "weekNumber": "1",
+      "dates": "29. desember - 2. janúar",
+      "year": "2025-2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "29",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "30",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "31",
+          "events": [
+            "Gamlársdagur"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "F",
+          "date": "1",
+          "events": [
+            "Nýársdagur"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "F",
+          "date": "2",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "2",
+      "dates": "5.-9. janúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "5",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "6",
+          "events": [
+            "Þrettándinn"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "7",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "8",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "9",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "weekNumber": "3",
+      "dates": "12.-16. janúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "12",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "13",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "14",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "15",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "16",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "4",
+      "dates": "19.-23. janúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "19",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "20",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "21",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "22",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "23",
+          "events": [
+            "Bóndadagur"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "5",
+      "dates": "26.-30. janúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "26",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "27",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "28",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "29",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "30",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "6",
+      "dates": "2.-6. febrúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "2",
+          "events": [
+            "Útivistardagur"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "3",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "4",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "5",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "6",
+          "events": [
+            "Dagur leikskólans"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "7",
+      "dates": "9.-13. febrúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "9",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "10",
+          "events": [
+            "Samtöl"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "11",
+          "events": [
+            "Samtöl"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "12",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "13",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "8",
+      "dates": "16.-20. febrúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "16",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "17",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "18",
+          "events": [
+            "Starfsdagur/öskudagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "F",
+          "date": "19",
+          "events": [
+            "Vetrarfrí"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "F",
+          "date": "20",
+          "events": [
+            "Vetrarfrí"
+          ],
+          "color": "brown"
+        }
+      ]
+    },
+    {
+      "weekNumber": "9",
+      "dates": "23.-27. febrúar",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "23",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "24",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "25",
+          "events": [
+            "Árshátíð"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "26",
+          "events": [
+            "Árshátíð"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "27",
+          "events": [
+            "Gulur dagur"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "10",
+      "dates": "2.-6. mars",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "2",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "3",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "4",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "5",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "6",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "11",
+      "dates": "9.-13. mars",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "9",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "10",
+          "events": [
+            "Upphátt"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "11",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "12",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "13",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "12",
+      "dates": "16.-20. mars",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "16",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "17",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "18",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "19",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "20",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "13",
+      "dates": "23.-27. mars",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "23",
+          "events": [
+            "Sumardagurinn fyrsti"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "24",
+          "events": [
+            "Generalpróf"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "25",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "26",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "27",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "14",
+      "dates": "30. mars - 3. apríl",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "30",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "31",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "1",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "2",
+          "events": [
+            "Skírdagur"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "F",
+          "date": "3",
+          "events": [
+            "Föstudagurinn langi"
+          ],
+          "color": "brown"
+        }
+      ]
+    },
+    {
+      "weekNumber": "15",
+      "dates": "6.-10. apríl",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "6",
+          "events": [
+            "Annar í Páskum"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "7",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "8",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "9",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "10",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "16",
+      "dates": "13.-17. apríl",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "13",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "14",
+          "events": [
+            "Uppstigningardagur"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "M",
+          "date": "15",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "F",
+          "date": "16",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "17",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "17",
+      "dates": "20.-24. apríl",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "20",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "21",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "22",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "23",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "24",
+          "events": [
+            "Hvítasunnudagur"
+          ],
+          "color": "brown"
+        }
+      ]
+    },
+    {
+      "weekNumber": "18",
+      "dates": "27. apríl - 1. maí",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "27",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "28",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "29",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "30",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "1",
+          "events": [
+            "Verkalýðsdagurinn"
+          ],
+          "color": "brown"
+        }
+      ]
+    },
+    {
+      "weekNumber": "19",
+      "dates": "4.-8. maí",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "4",
+          "events": [
+            "Uppbrotsdagur"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "5",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "6",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "7",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "8",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        }
+      ]
+    },
+    {
+      "weekNumber": "20",
+      "dates": "11.-15. maí",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "11",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "12",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "13",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "14",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "15",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "21",
+      "dates": "18.-22. maí",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "18",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "19",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "20",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "21",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "22",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "22",
+      "dates": "25.-29. maí",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "25",
+          "events": [
+            "Annar í Hvítasunnu"
+          ],
+          "color": "brown"
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "26",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "27",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "28",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "29",
+          "events": []
+        }
+      ]
+    },
+    {
+      "weekNumber": "23",
+      "dates": "1.-5. júní",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "1",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "2",
+          "events": []
+        },
+        {
+          "dayLetter": "M",
+          "date": "3",
+          "events": [
+            "Fjölgreindaleikar"
+          ],
+          "color": "beige"
+        },
+        {
+          "dayLetter": "F",
+          "date": "4",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "5",
+          "events": [
+            "Skólaslit"
+          ],
+          "color": "beige"
+        }
+      ]
+    },
+    {
+      "weekNumber": "24",
+      "dates": "8.-12. júní",
+      "year": "2026",
+      "days": [
+        {
+          "dayLetter": "M",
+          "date": "8",
+          "events": []
+        },
+        {
+          "dayLetter": "Þ",
+          "date": "9",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "M",
+          "date": "10",
+          "events": [
+            "Starfsdagur"
+          ],
+          "color": "blue"
+        },
+        {
+          "dayLetter": "F",
+          "date": "11",
+          "events": []
+        },
+        {
+          "dayLetter": "F",
+          "date": "12",
+          "events": []
+        }
+      ]
+    }
+  ]
+}

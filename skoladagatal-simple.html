@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skóladagatal</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #e0f2fe 0%, #ddd6fe 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .week-header {
+      background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .day-card {
+      background: white;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: stretch;
+    }
+    .day-header {
+      background-color: #6366f1;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      min-width: 120px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .day-body {
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-10">
+        
+        <!-- Data Input Section -->
+        <div id="input-section" class="card shadow-lg mb-4">
+          <div class="card-body p-5">
+            <div class="d-flex align-items-center mb-4">
+              <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-3">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <div>
+                <h1 class="h2 mb-0 fw-bold">Skóladagatal</h1>
+                <p class="text-muted mb-0 small">Límdu JSON gögnum fyrir dagatalið hér að neðan</p>
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label for="json-input" class="form-label fw-bold">JSON Gögn:</label>
+              <textarea 
+                id="json-input" 
+                class="form-control font-monospace" 
+                rows="15" 
+                placeholder='{"weeks":[{"weekNumber":"32","dates":"4.-8. ágúst","year":"2025","days":[...]}]}'
+              ></textarea>
+              <small class="text-muted">
+                Format: {"weeks":[...]} með weekNumber, dates, year, days (dayLetter, date, events, color)
+              </small>
+            </div>
+            
+            <div class="d-flex gap-2">
+              <button id="load-data-btn" class="btn btn-primary btn-lg">
+                ✅ Hlaða gögnum
+              </button>
+              <button id="load-sample-btn" class="btn btn-outline-secondary">
+                📋 Nota sýnigögn
+              </button>
+            </div>
+            
+            <div id="input-status" class="mt-3"></div>
+          </div>
+        </div>
+
+        <!-- Calendar Section -->
+        <div id="calendar-section" class="d-none">
+          <div class="card shadow-lg">
+            <div class="card-body p-4">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+              <div class="d-flex align-items-center">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" class="me-3">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <div>
+                  <h1 class="h2 mb-0 fw-bold">Skóladagatal</h1>
+                  <div class="small text-muted" id="calendar-title">Dagatal</div>
+                </div>
+              </div>
+              <button id="reset-btn" class="btn btn-outline-secondary">
+                🔄 Breyta gögnum
+              </button>
+            </div>
+
+            <div class="mb-3 text-muted small d-flex align-items-center gap-3 flex-wrap">
+              <span id="week-info">📄 Skóladagatal</span>
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge" style="background-color: #fcebb4;">Sérstakir dagar</span>
+                <span class="badge" style="background-color: #dab494;">Frídagar/Frí</span>
+                <span class="badge" style="background-color: #96b3d6;">Starfsdagar</span>
+                <span class="badge" style="background-color: #8eb4e2;">Viðburðir</span>
+              </div>
+            </div>
+
+            <div class="week-header">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <button id="prev-btn" class="btn btn-light btn-lg">←</button>
+                <div class="text-center">
+                  <div class="display-4 fw-bold mb-2">Vika <span id="week-number"></span></div>
+                  <div class="fs-5" id="week-dates"></div>
+                  <div class="small mt-1" id="week-year"></div>
+                </div>
+                <button id="next-btn" class="btn btn-light btn-lg">→</button>
+              </div>
+              <div class="text-center small">
+                <span id="week-counter"></span>
+              </div>
+            </div>
+
+            <div class="bg-light rounded-3 p-4">
+              <div id="days-container"></div>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentWeekIndex = 0;
+    let weeks = [];
+
+    // Sample data for demo
+    const sampleData = {
+      "weeks": [
+        {"weekNumber":"32","dates":"4.-8. ágúst","year":"2025","days":[{"dayLetter":"M","date":"4","events":["Frídagur verslunarmanna"],"color":"beige"},{"dayLetter":"Þ","date":"5","events":[]},{"dayLetter":"M","date":"6","events":[]},{"dayLetter":"F","date":"7","events":[]},{"dayLetter":"F","date":"8","events":[]}]},
+        {"weekNumber":"33","dates":"11.-15. ágúst","year":"2025","days":[{"dayLetter":"M","date":"11","events":[]},{"dayLetter":"Þ","date":"12","events":[]},{"dayLetter":"M","date":"13","events":["Fræðsludagur"],"color":"beige"},{"dayLetter":"F","date":"14","events":["Fræðsludagur"],"color":"beige"},{"dayLetter":"F","date":"15","events":["Starfsdagur"],"color":"blue"}]},
+        {"weekNumber":"34","dates":"18.-22. ágúst","year":"2025","days":[{"dayLetter":"M","date":"18","events":["Starfsdagur"],"color":"blue"},{"dayLetter":"Þ","date":"19","events":["Starfsdagur"],"color":"blue"},{"dayLetter":"M","date":"20","events":["Starfsdagur"],"color":"blue"},{"dayLetter":"F","date":"21","events":["Starfsdagur"],"color":"blue"},{"dayLetter":"F","date":"22","events":["Skólasetning"],"color":"beige"}]},
+        {"weekNumber":"35","dates":"25.-29. ágúst","year":"2025","days":[{"dayLetter":"M","date":"25","events":[]},{"dayLetter":"Þ","date":"26","events":[]},{"dayLetter":"M","date":"27","events":[]},{"dayLetter":"F","date":"28","events":[]},{"dayLetter":"F","date":"29","events":[]}]}
+      ]
+    };
+
+    function showCalendar() {
+      document.getElementById('input-section').classList.add('d-none');
+      document.getElementById('calendar-section').classList.remove('d-none');
+      document.getElementById('week-info').textContent = `📄 ${weeks.length} vikur`;
+      
+      // Find current week
+      const currentWeek = getCurrentWeekNumber();
+      const weekIndex = weeks.findIndex(w => parseInt(w.weekNumber) === currentWeek);
+      
+      if (weekIndex !== -1) {
+        currentWeekIndex = weekIndex;
+      } else {
+        currentWeekIndex = 0;
+      }
+      
+      renderWeek();
+    }
+    
+    function getCurrentWeekNumber() {
+      const now = new Date();
+      const start = new Date(now.getFullYear(), 0, 1);
+      const diff = now - start;
+      const oneWeek = 1000 * 60 * 60 * 24 * 7;
+      const weekNum = Math.ceil((diff / oneWeek) + ((start.getDay() + 1) / 7));
+      return weekNum;
+    }
+
+    function showInput() {
+      document.getElementById('input-section').classList.remove('d-none');
+      document.getElementById('calendar-section').classList.add('d-none');
+      weeks = [];
+      currentWeekIndex = 0;
+    }
+
+    // Load data button
+    document.getElementById('load-data-btn').addEventListener('click', () => {
+      const jsonInput = document.getElementById('json-input').value.trim();
+      
+      if (!jsonInput) {
+        document.getElementById('input-status').innerHTML = 
+          '<div class="alert alert-warning">⚠️ Vinsamlegast límdu JSON gögnum</div>';
+        return;
+      }
+      
+      try {
+        const data = JSON.parse(jsonInput);
+        
+        if (!data.weeks || !Array.isArray(data.weeks) || data.weeks.length === 0) {
+          throw new Error('JSON verður að innihalda "weeks" array með að minnsta kosti eina viku');
+        }
+        
+        weeks = data.weeks;
+        document.getElementById('calendar-title').textContent = 'Dagatal';
+        document.getElementById('input-status').innerHTML = 
+          `<div class="alert alert-success">✅ ${weeks.length} vikur hlaðnar!</div>`;
+        
+        setTimeout(() => showCalendar(), 1000);
+        
+      } catch (error) {
+        document.getElementById('input-status').innerHTML = 
+          `<div class="alert alert-danger">❌ Villa í JSON: ${error.message}</div>`;
+      }
+    });
+
+    // Load sample data button
+    document.getElementById('load-sample-btn').addEventListener('click', () => {
+      document.getElementById('json-input').value = JSON.stringify(sampleData, null, 2);
+      document.getElementById('input-status').innerHTML = 
+        '<div class="alert alert-info">📋 Sýnigögn hlaðin í textareit</div>';
+    });
+
+    // Reset button
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      showInput();
+    });
+
+    function renderWeek() {
+      const week = weeks[currentWeekIndex];
+      if (!week) return;
+
+      document.getElementById('week-number').textContent = week.weekNumber;
+      document.getElementById('week-dates').textContent = week.dates;
+      document.getElementById('week-year').textContent = week.year || '';
+      document.getElementById('week-counter').textContent = 
+        `${currentWeekIndex + 1} af ${weeks.length} vikum`;
+
+      document.getElementById('prev-btn').disabled = currentWeekIndex === 0;
+      document.getElementById('next-btn').disabled = currentWeekIndex === weeks.length - 1;
+
+      const daysContainer = document.getElementById('days-container');
+      daysContainer.innerHTML = '';
+      
+      week.days.forEach((day) => {
+        const dayCard = document.createElement('div');
+        dayCard.className = 'day-card';
+        
+        // Litur út frá viðburði
+        const colorMap = {
+          'beige': '#fcebb4',
+          'brown': '#dab494',
+          'blue': '#96b3d6',
+          'lightblue': '#8eb4e2'
+        };
+        const bgColor = day.color ? colorMap[day.color] : 'white';
+        
+        dayCard.innerHTML = `
+          <div class="day-header">
+            <div class="fs-4 fw-bold">
+              ${day.date ? `${day.date}. ` : ''}${day.dayLetter}
+            </div>
+          </div>
+          <div class="day-body" style="background-color: ${bgColor};">
+            ${day.events && day.events.length > 0 ? 
+              `<ul class="list-unstyled mb-0 w-100">
+                ${day.events.map(event => `
+                  <li class="text-secondary mb-2 d-flex align-items-start">
+                    <span class="text-primary me-2">•</span>
+                    <span>${event}</span>
+                  </li>
+                `).join('')}
+              </ul>` :
+              '<span class="text-muted">Engir viðburðir</span>'
+            }
+          </div>
+        `;
+        
+        daysContainer.appendChild(dayCard);
+      });
+    }
+
+    document.getElementById('prev-btn').addEventListener('click', () => {
+      if (currentWeekIndex > 0) {
+        currentWeekIndex--;
+        renderWeek();
+      }
+    });
+
+    document.getElementById('next-btn').addEventListener('click', () => {
+      if (currentWeekIndex < weeks.length - 1) {
+        currentWeekIndex++;
+        renderWeek();
+      }
+    });
+  </script>
+</body>
+</html>
