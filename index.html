@@ -53,6 +53,10 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
 
+        .upload-section.hidden {
+            display: none;
+        }
+
         .upload-area {
             border: 3px dashed #667eea;
             border-radius: 10px;
@@ -316,6 +320,78 @@
             font-size: 18px;
         }
 
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-modal.visible {
+            display: flex;
+        }
+
+        .confirmation-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .confirmation-content h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .confirmation-content p {
+            margin-bottom: 25px;
+            color: #666;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .confirm-btn {
+            background: #ff5722;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .cancel-btn {
+            background: #999;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .confirm-btn:hover {
+            background: #e64a19;
+        }
+
+        .cancel-btn:hover {
+            background: #777;
+        }
+
         .error {
             background: #ffebee;
             border: 2px solid #f44336;
@@ -364,10 +440,10 @@
     <div class="container">
         <div class="header">
             <h1>📚 Skóladagatal</h1>
-            <div class="school-year" id="schoolInfo">Hlaðið inn PDF skjali til að byrja</div>
+            <div class="school-year" id="schoolInfo"></div>
         </div>
 
-        <div class="upload-section">
+        <div class="upload-section" id="uploadSection">
             <div class="upload-area" id="uploadArea">
                 <div class="upload-icon">📄</div>
                 <div class="upload-text">Smelltu hér eða dragðu PDF skjal hingað</div>
@@ -392,6 +468,17 @@
         </div>
 
         <div class="week-card" id="weekDisplay"></div>
+
+        <div class="confirmation-modal" id="confirmModal">
+            <div class="confirmation-content">
+                <h3>⚠️ Staðfesta</h3>
+                <p>Ertu viss um að þú viljir hlaða inn nýju skjali?<br>Núverandi dagatal mun hverfa.</p>
+                <div class="confirmation-buttons">
+                    <button class="cancel-btn" id="cancelBtn">Hætta við</button>
+                    <button class="confirm-btn" id="confirmBtn">Já, halda áfram</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -433,6 +520,14 @@
         });
 
         document.getElementById('newFileBtn').addEventListener('click', () => {
+            document.getElementById('confirmModal').classList.add('visible');
+        });
+
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            document.getElementById('confirmModal').classList.remove('visible');
+        });
+
+        document.getElementById('confirmBtn').addEventListener('click', () => {
             location.reload();
         });
 
@@ -446,11 +541,18 @@
                 const page = await pdf.getPage(1);
                 const textContent = await page.getTextContent();
                 
-                const text = textContent.items.map(item => item.str).join(' ');
+                const text = textContent.items.map(item => item.str).join('\n');
                 
-                // Extract school name
-                const schoolMatch = text.match(/Nafn skóla:\s*([^\n]+)/);
-                const schoolName = schoolMatch ? schoolMatch[1].trim() : 'Óþekktur skóli';
+                // Extract school year from top of PDF (looking for "Skóladagatal 2025 - 2026")
+                const yearMatch = text.match(/Skóladagatal\s+(\d{4})\s*-\s*(\d{4})/);
+                const schoolYear = yearMatch ? `${yearMatch[1]}-${yearMatch[2]}` : '2025-2026';
+                
+                // Extract school name (looking for "Nafn skóla: Lundarskóli")
+                let schoolName = 'Skóli'; // default
+                const nameMatch = text.match(/Nafn skóla:\s*([^\n]+)/);
+                if (nameMatch) {
+                    schoolName = nameMatch[1].trim();
+                }
 
                 // Parse calendar data
                 const events = parseCalendarText(text);
@@ -458,17 +560,18 @@
 
                 calendarData = {
                     school: schoolName,
-                    year: '2025-2026',
+                    year: schoolYear,
                     weeks: weeks
                 };
 
-                document.getElementById('schoolInfo').textContent = `${schoolName} • 2025-2026`;
+                document.getElementById('schoolInfo').textContent = `${schoolName} • ${schoolYear}`;
                 
                 currentWeekIndex = findCurrentWeek();
                 populateWeekSelector();
                 displayWeek(currentWeekIndex);
 
                 document.getElementById('controls').classList.add('visible');
+                document.getElementById('uploadSection').classList.add('hidden');
 
             } catch (error) {
                 console.error('Villa:', error);
