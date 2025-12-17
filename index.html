@@ -3,15 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skóladagatal - Lundarskóli 2025-2026</title>
+    <title>Skóladagatal</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 900px; margin: 0 auto; }
-        .header { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .header { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; position: relative; }
         .header h1 { color: #333; font-size: 28px; margin-bottom: 10px; }
         .header .school-year { color: #666; font-size: 18px; font-weight: 500; }
-        .controls { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .change-btn { position: absolute; top: 20px; right: 20px; background: #ff9800; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s ease; display: none; }
+        .change-btn:hover { background: #f57c00; transform: translateY(-2px); }
+        .upload-section { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }
+        .upload-btn { background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; transition: all 0.3s ease; }
+        .upload-btn:hover { background: #5568d3; transform: translateY(-2px); }
+        .file-input { display: none; }
+        .info-text { color: #666; font-size: 14px; margin-top: 10px; }
+        .controls { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; }
         .control-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 15px; }
         .control-row:last-child { margin-bottom: 0; }
         .week-selector { display: flex; align-items: center; gap: 15px; flex: 1; }
@@ -20,7 +28,7 @@
         .nav-btn { background: #667eea; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s ease; }
         .nav-btn:hover { background: #5568d3; transform: translateY(-2px); }
         .nav-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .week-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .week-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; }
         .week-header { text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #f0f0f0; }
         .week-title { font-size: 24px; color: #333; margin-bottom: 5px; }
         .week-dates { font-size: 16px; color: #666; }
@@ -39,17 +47,46 @@
         .event-tag.starfsdagur { background: #4caf50; }
         .event-tag.fri { background: #ff9800; }
         .no-events { color: #999; font-style: italic; font-size: 14px; }
+        .loading { text-align: center; padding: 40px; color: #666; font-size: 18px; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: white; margin: 15% auto; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-header { font-size: 24px; font-weight: 600; color: #333; margin-bottom: 15px; }
+        .modal-text { color: #666; margin-bottom: 25px; line-height: 1.6; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+        .modal-btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s ease; }
+        .modal-btn.cancel { background: #e0e0e0; color: #666; }
+        .modal-btn.cancel:hover { background: #d0d0d0; }
+        .modal-btn.confirm { background: #ff5722; color: white; }
+        .modal-btn.confirm:hover { background: #e64a19; }
+
+        @media (max-width: 768px) {
+            .change-btn { position: static; width: 100%; margin-top: 15px; }
+            .modal-content { margin: 30% auto; width: 95%; padding: 20px; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📚 Skóladagatal</h1>
-            <div class="school-year">Lundarskóli • 2025-2026</div>
+            <div class="school-year" id="schoolInfo">Veldu PDF dagatal til að byrja</div>
+            <button class="change-btn" id="changeBtn" onclick="showChangeModal()">🔄 Skipta um dagatal</button>
         </div>
-        <div class="controls">
+
+        <div class="upload-section" id="uploadSection">
+            <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                📄 Velja PDF dagatal
+            </button>
+            <div class="info-text">Hlaðið inn PDF skóladagatali - allt er lesið sjálfkrafa!</div>
+            <input type="file" id="fileInput" class="file-input" accept=".pdf">
+        </div>
+
+        <div class="controls" id="controls">
             <div class="control-row">
-                <div class="week-selector"><select id="weekSelect"></select></div>
+                <div class="week-selector">
+                    <select id="weekSelect"></select>
+                </div>
             </div>
             <div class="control-row">
                 <div class="nav-buttons">
@@ -58,2709 +95,328 @@
                 </div>
             </div>
         </div>
+
         <div class="week-card" id="weekDisplay"></div>
     </div>
+
+    <!-- Modal for changing calendar -->
+    <div id="changeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">⚠️ Skipta um dagatal?</div>
+            <div class="modal-text">
+                Þetta mun skipta út núverandi dagatalinu og hlaða inn nýju PDF skjali.
+                <br><br>
+                Ertu viss um að þú viljir halda áfram?
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="hideChangeModal()">Hætta við</button>
+                <button class="modal-btn confirm" onclick="confirmChange()">Já, skipta</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const calendarData = {
-  "school": "Lundarskóli",
-  "year": "2025-2026",
-  "weeks": [
-    {
-      "week_number": 1,
-      "start_date": "2025-08-04",
-      "days": [
-        {
-          "date": "2025-08-04",
-          "weekday": "Mánudagur",
-          "day_number": 4,
-          "month": "ágúst",
-          "events": [
-            "Frídagur verslunarmanna"
-          ]
-        },
-        {
-          "date": "2025-08-05",
-          "weekday": "Þriðjudagur",
-          "day_number": 5,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-06",
-          "weekday": "Miðvikudagur",
-          "day_number": 6,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-07",
-          "weekday": "Fimmtudagur",
-          "day_number": 7,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-08",
-          "weekday": "Föstudagur",
-          "day_number": 8,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-09",
-          "weekday": "Laugardagur",
-          "day_number": 9,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-10",
-          "weekday": "Sunnudagur",
-          "day_number": 10,
-          "month": "ágúst",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 2,
-      "start_date": "2025-08-11",
-      "days": [
-        {
-          "date": "2025-08-11",
-          "weekday": "Mánudagur",
-          "day_number": 11,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-12",
-          "weekday": "Þriðjudagur",
-          "day_number": 12,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-13",
-          "weekday": "Miðvikudagur",
-          "day_number": 13,
-          "month": "ágúst",
-          "events": [
-            "Fræðsludagur"
-          ]
-        },
-        {
-          "date": "2025-08-14",
-          "weekday": "Fimmtudagur",
-          "day_number": 14,
-          "month": "ágúst",
-          "events": [
-            "Fræðsludagur"
-          ]
-        },
-        {
-          "date": "2025-08-15",
-          "weekday": "Föstudagur",
-          "day_number": 15,
-          "month": "ágúst",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2025-08-16",
-          "weekday": "Laugardagur",
-          "day_number": 16,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-17",
-          "weekday": "Sunnudagur",
-          "day_number": 17,
-          "month": "ágúst",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 3,
-      "start_date": "2025-08-18",
-      "days": [
-        {
-          "date": "2025-08-18",
-          "weekday": "Mánudagur",
-          "day_number": 18,
-          "month": "ágúst",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2025-08-19",
-          "weekday": "Þriðjudagur",
-          "day_number": 19,
-          "month": "ágúst",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2025-08-20",
-          "weekday": "Miðvikudagur",
-          "day_number": 20,
-          "month": "ágúst",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2025-08-21",
-          "weekday": "Fimmtudagur",
-          "day_number": 21,
-          "month": "ágúst",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2025-08-22",
-          "weekday": "Föstudagur",
-          "day_number": 22,
-          "month": "ágúst",
-          "events": [
-            "Skólasetning"
-          ]
-        },
-        {
-          "date": "2025-08-23",
-          "weekday": "Laugardagur",
-          "day_number": 23,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-24",
-          "weekday": "Sunnudagur",
-          "day_number": 24,
-          "month": "ágúst",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 4,
-      "start_date": "2025-08-25",
-      "days": [
-        {
-          "date": "2025-08-25",
-          "weekday": "Mánudagur",
-          "day_number": 25,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-26",
-          "weekday": "Þriðjudagur",
-          "day_number": 26,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-27",
-          "weekday": "Miðvikudagur",
-          "day_number": 27,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-28",
-          "weekday": "Fimmtudagur",
-          "day_number": 28,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-29",
-          "weekday": "Föstudagur",
-          "day_number": 29,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-30",
-          "weekday": "Laugardagur",
-          "day_number": 30,
-          "month": "ágúst",
-          "events": []
-        },
-        {
-          "date": "2025-08-31",
-          "weekday": "Sunnudagur",
-          "day_number": 31,
-          "month": "ágúst",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 5,
-      "start_date": "2025-09-01",
-      "days": [
-        {
-          "date": "2025-09-01",
-          "weekday": "Mánudagur",
-          "day_number": 1,
-          "month": "september",
-          "events": [
-            "Útivistardagur"
-          ]
-        },
-        {
-          "date": "2025-09-02",
-          "weekday": "Þriðjudagur",
-          "day_number": 2,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-03",
-          "weekday": "Miðvikudagur",
-          "day_number": 3,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-04",
-          "weekday": "Fimmtudagur",
-          "day_number": 4,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-05",
-          "weekday": "Föstudagur",
-          "day_number": 5,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-06",
-          "weekday": "Laugardagur",
-          "day_number": 6,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-07",
-          "weekday": "Sunnudagur",
-          "day_number": 7,
-          "month": "september",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 6,
-      "start_date": "2025-09-08",
-      "days": [
-        {
-          "date": "2025-09-08",
-          "weekday": "Mánudagur",
-          "day_number": 8,
-          "month": "september",
-          "events": [
-            "Dagur læsis"
-          ]
-        },
-        {
-          "date": "2025-09-09",
-          "weekday": "Þriðjudagur",
-          "day_number": 9,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-10",
-          "weekday": "Miðvikudagur",
-          "day_number": 10,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-11",
-          "weekday": "Fimmtudagur",
-          "day_number": 11,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-12",
-          "weekday": "Föstudagur",
-          "day_number": 12,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-13",
-          "weekday": "Laugardagur",
-          "day_number": 13,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-14",
-          "weekday": "Sunnudagur",
-          "day_number": 14,
-          "month": "september",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 7,
-      "start_date": "2025-09-15",
-      "days": [
-        {
-          "date": "2025-09-15",
-          "weekday": "Mánudagur",
-          "day_number": 15,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-16",
-          "weekday": "Þriðjudagur",
-          "day_number": 16,
-          "month": "september",
-          "events": [
-            "Dagur íslenskrar náttúru"
-          ]
-        },
-        {
-          "date": "2025-09-17",
-          "weekday": "Miðvikudagur",
-          "day_number": 17,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-18",
-          "weekday": "Fimmtudagur",
-          "day_number": 18,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-19",
-          "weekday": "Föstudagur",
-          "day_number": 19,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-20",
-          "weekday": "Laugardagur",
-          "day_number": 20,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-21",
-          "weekday": "Sunnudagur",
-          "day_number": 21,
-          "month": "september",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 8,
-      "start_date": "2025-09-22",
-      "days": [
-        {
-          "date": "2025-09-22",
-          "weekday": "Mánudagur",
-          "day_number": 22,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-23",
-          "weekday": "Þriðjudagur",
-          "day_number": 23,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-24",
-          "weekday": "Miðvikudagur",
-          "day_number": 24,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-25",
-          "weekday": "Fimmtudagur",
-          "day_number": 25,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-26",
-          "weekday": "Föstudagur",
-          "day_number": 26,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-27",
-          "weekday": "Laugardagur",
-          "day_number": 27,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-28",
-          "weekday": "Sunnudagur",
-          "day_number": 28,
-          "month": "september",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 9,
-      "start_date": "2025-09-29",
-      "days": [
-        {
-          "date": "2025-09-29",
-          "weekday": "Mánudagur",
-          "day_number": 29,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-09-30",
-          "weekday": "Þriðjudagur",
-          "day_number": 30,
-          "month": "september",
-          "events": []
-        },
-        {
-          "date": "2025-10-01",
-          "weekday": "Miðvikudagur",
-          "day_number": 1,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-02",
-          "weekday": "Fimmtudagur",
-          "day_number": 2,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-03",
-          "weekday": "Föstudagur",
-          "day_number": 3,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-04",
-          "weekday": "Laugardagur",
-          "day_number": 4,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-05",
-          "weekday": "Sunnudagur",
-          "day_number": 5,
-          "month": "október",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 10,
-      "start_date": "2025-10-06",
-      "days": [
-        {
-          "date": "2025-10-06",
-          "weekday": "Mánudagur",
-          "day_number": 6,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-07",
-          "weekday": "Þriðjudagur",
-          "day_number": 7,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-08",
-          "weekday": "Miðvikudagur",
-          "day_number": 8,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-09",
-          "weekday": "Fimmtudagur",
-          "day_number": 9,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-10",
-          "weekday": "Föstudagur",
-          "day_number": 10,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-11",
-          "weekday": "Laugardagur",
-          "day_number": 11,
-          "month": "október",
-          "events": [
-            "Læðingardagur forseta Íslands (H"
-          ]
-        },
-        {
-          "date": "2025-10-12",
-          "weekday": "Sunnudagur",
-          "day_number": 12,
-          "month": "október",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 11,
-      "start_date": "2025-10-13",
-      "days": [
-        {
-          "date": "2025-10-13",
-          "weekday": "Mánudagur",
-          "day_number": 13,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-14",
-          "weekday": "Þriðjudagur",
-          "day_number": 14,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-15",
-          "weekday": "Miðvikudagur",
-          "day_number": 15,
-          "month": "október",
-          "events": [
-            "Þemadagar"
-          ]
-        },
-        {
-          "date": "2025-10-16",
-          "weekday": "Fimmtudagur",
-          "day_number": 16,
-          "month": "október",
-          "events": [
-            "Þemadagar"
-          ]
-        },
-        {
-          "date": "2025-10-17",
-          "weekday": "Föstudagur",
-          "day_number": 17,
-          "month": "október",
-          "events": [
-            "Þemadagar"
-          ]
-        },
-        {
-          "date": "2025-10-18",
-          "weekday": "Laugardagur",
-          "day_number": 18,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-19",
-          "weekday": "Sunnudagur",
-          "day_number": 19,
-          "month": "október",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 12,
-      "start_date": "2025-10-20",
-      "days": [
-        {
-          "date": "2025-10-20",
-          "weekday": "Mánudagur",
-          "day_number": 20,
-          "month": "október",
-          "events": [
-            "Haustfrí"
-          ]
-        },
-        {
-          "date": "2025-10-21",
-          "weekday": "Þriðjudagur",
-          "day_number": 21,
-          "month": "október",
-          "events": [
-            "Haustfrí"
-          ]
-        },
-        {
-          "date": "2025-10-22",
-          "weekday": "Miðvikudagur",
-          "day_number": 22,
-          "month": "október",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2025-10-23",
-          "weekday": "Fimmtudagur",
-          "day_number": 23,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-24",
-          "weekday": "Föstudagur",
-          "day_number": 24,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-25",
-          "weekday": "Laugardagur",
-          "day_number": 25,
-          "month": "október",
-          "events": [
-            "Fyrsti vetrardagur"
-          ]
-        },
-        {
-          "date": "2025-10-26",
-          "weekday": "Sunnudagur",
-          "day_number": 26,
-          "month": "október",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 13,
-      "start_date": "2025-10-27",
-      "days": [
-        {
-          "date": "2025-10-27",
-          "weekday": "Mánudagur",
-          "day_number": 27,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-28",
-          "weekday": "Þriðjudagur",
-          "day_number": 28,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-29",
-          "weekday": "Miðvikudagur",
-          "day_number": 29,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-30",
-          "weekday": "Fimmtudagur",
-          "day_number": 30,
-          "month": "október",
-          "events": []
-        },
-        {
-          "date": "2025-10-31",
-          "weekday": "Föstudagur",
-          "day_number": 31,
-          "month": "október",
-          "events": [
-            "Gamlársdagur"
-          ]
-        },
-        {
-          "date": "2025-11-01",
-          "weekday": "Laugardagur",
-          "day_number": 1,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-02",
-          "weekday": "Sunnudagur",
-          "day_number": 2,
-          "month": "nóvember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 14,
-      "start_date": "2025-11-03",
-      "days": [
-        {
-          "date": "2025-11-03",
-          "weekday": "Mánudagur",
-          "day_number": 3,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-04",
-          "weekday": "Þriðjudagur",
-          "day_number": 4,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-05",
-          "weekday": "Miðvikudagur",
-          "day_number": 5,
-          "month": "nóvember",
-          "events": [
-            "Samtöl"
-          ]
-        },
-        {
-          "date": "2025-11-06",
-          "weekday": "Fimmtudagur",
-          "day_number": 6,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-07",
-          "weekday": "Föstudagur",
-          "day_number": 7,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-08",
-          "weekday": "Laugardagur",
-          "day_number": 8,
-          "month": "nóvember",
-          "events": [
-            "Baráttudagur gegn einelti"
-          ]
-        },
-        {
-          "date": "2025-11-09",
-          "weekday": "Sunnudagur",
-          "day_number": 9,
-          "month": "nóvember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 15,
-      "start_date": "2025-11-10",
-      "days": [
-        {
-          "date": "2025-11-10",
-          "weekday": "Mánudagur",
-          "day_number": 10,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-11",
-          "weekday": "Þriðjudagur",
-          "day_number": 11,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-12",
-          "weekday": "Miðvikudagur",
-          "day_number": 12,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-13",
-          "weekday": "Fimmtudagur",
-          "day_number": 13,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-14",
-          "weekday": "Föstudagur",
-          "day_number": 14,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-15",
-          "weekday": "Laugardagur",
-          "day_number": 15,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-16",
-          "weekday": "Sunnudagur",
-          "day_number": 16,
-          "month": "nóvember",
-          "events": [
-            "Dagur íslenskrar tungu"
-          ]
-        }
-      ]
-    },
-    {
-      "week_number": 16,
-      "start_date": "2025-11-17",
-      "days": [
-        {
-          "date": "2025-11-17",
-          "weekday": "Mánudagur",
-          "day_number": 17,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-18",
-          "weekday": "Þriðjudagur",
-          "day_number": 18,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-19",
-          "weekday": "Miðvikudagur",
-          "day_number": 19,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-20",
-          "weekday": "Fimmtudagur",
-          "day_number": 20,
-          "month": "nóvember",
-          "events": [
-            "Dagur mannréttinda barna"
-          ]
-        },
-        {
-          "date": "2025-11-21",
-          "weekday": "Föstudagur",
-          "day_number": 21,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-22",
-          "weekday": "Laugardagur",
-          "day_number": 22,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-23",
-          "weekday": "Sunnudagur",
-          "day_number": 23,
-          "month": "nóvember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 17,
-      "start_date": "2025-11-24",
-      "days": [
-        {
-          "date": "2025-11-24",
-          "weekday": "Mánudagur",
-          "day_number": 24,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-25",
-          "weekday": "Þriðjudagur",
-          "day_number": 25,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-26",
-          "weekday": "Miðvikudagur",
-          "day_number": 26,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-27",
-          "weekday": "Fimmtudagur",
-          "day_number": 27,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-28",
-          "weekday": "Föstudagur",
-          "day_number": 28,
-          "month": "nóvember",
-          "events": [
-            "Jólaundirbúningur"
-          ]
-        },
-        {
-          "date": "2025-11-29",
-          "weekday": "Laugardagur",
-          "day_number": 29,
-          "month": "nóvember",
-          "events": []
-        },
-        {
-          "date": "2025-11-30",
-          "weekday": "Sunnudagur",
-          "day_number": 30,
-          "month": "nóvember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 18,
-      "start_date": "2025-12-01",
-      "days": [
-        {
-          "date": "2025-12-01",
-          "weekday": "Mánudagur",
-          "day_number": 1,
-          "month": "desember",
-          "events": [
-            "Fullveldisdagurinn"
-          ]
-        },
-        {
-          "date": "2025-12-02",
-          "weekday": "Þriðjudagur",
-          "day_number": 2,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-03",
-          "weekday": "Miðvikudagur",
-          "day_number": 3,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-04",
-          "weekday": "Fimmtudagur",
-          "day_number": 4,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-05",
-          "weekday": "Föstudagur",
-          "day_number": 5,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-06",
-          "weekday": "Laugardagur",
-          "day_number": 6,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-07",
-          "weekday": "Sunnudagur",
-          "day_number": 7,
-          "month": "desember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 19,
-      "start_date": "2025-12-08",
-      "days": [
-        {
-          "date": "2025-12-08",
-          "weekday": "Mánudagur",
-          "day_number": 8,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-09",
-          "weekday": "Þriðjudagur",
-          "day_number": 9,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-10",
-          "weekday": "Miðvikudagur",
-          "day_number": 10,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-11",
-          "weekday": "Fimmtudagur",
-          "day_number": 11,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-12",
-          "weekday": "Föstudagur",
-          "day_number": 12,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-13",
-          "weekday": "Laugardagur",
-          "day_number": 13,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-14",
-          "weekday": "Sunnudagur",
-          "day_number": 14,
-          "month": "desember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 20,
-      "start_date": "2025-12-15",
-      "days": [
-        {
-          "date": "2025-12-15",
-          "weekday": "Mánudagur",
-          "day_number": 15,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-16",
-          "weekday": "Þriðjudagur",
-          "day_number": 16,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-17",
-          "weekday": "Miðvikudagur",
-          "day_number": 17,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-18",
-          "weekday": "Fimmtudagur",
-          "day_number": 18,
-          "month": "desember",
-          "events": [
-            "Rauður dagur"
-          ]
-        },
-        {
-          "date": "2025-12-19",
-          "weekday": "Föstudagur",
-          "day_number": 19,
-          "month": "desember",
-          "events": [
-            "Litlu jól"
-          ]
-        },
-        {
-          "date": "2025-12-20",
-          "weekday": "Laugardagur",
-          "day_number": 20,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-21",
-          "weekday": "Sunnudagur",
-          "day_number": 21,
-          "month": "desember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 21,
-      "start_date": "2025-12-22",
-      "days": [
-        {
-          "date": "2025-12-22",
-          "weekday": "Mánudagur",
-          "day_number": 22,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-23",
-          "weekday": "Þriðjudagur",
-          "day_number": 23,
-          "month": "desember",
-          "events": [
-            "Þorláksmessa"
-          ]
-        },
-        {
-          "date": "2025-12-24",
-          "weekday": "Miðvikudagur",
-          "day_number": 24,
-          "month": "desember",
-          "events": [
-            "Aðfangadagur jóla"
-          ]
-        },
-        {
-          "date": "2025-12-25",
-          "weekday": "Fimmtudagur",
-          "day_number": 25,
-          "month": "desember",
-          "events": [
-            "Jóladagur"
-          ]
-        },
-        {
-          "date": "2025-12-26",
-          "weekday": "Föstudagur",
-          "day_number": 26,
-          "month": "desember",
-          "events": [
-            "Annar í jólum"
-          ]
-        },
-        {
-          "date": "2025-12-27",
-          "weekday": "Laugardagur",
-          "day_number": 27,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-28",
-          "weekday": "Sunnudagur",
-          "day_number": 28,
-          "month": "desember",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 22,
-      "start_date": "2025-12-29",
-      "days": [
-        {
-          "date": "2025-12-29",
-          "weekday": "Mánudagur",
-          "day_number": 29,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-30",
-          "weekday": "Þriðjudagur",
-          "day_number": 30,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2025-12-31",
-          "weekday": "Miðvikudagur",
-          "day_number": 31,
-          "month": "desember",
-          "events": []
-        },
-        {
-          "date": "2026-01-01",
-          "weekday": "Fimmtudagur",
-          "day_number": 1,
-          "month": "janúar",
-          "events": [
-            "Nýársdagur"
-          ]
-        },
-        {
-          "date": "2026-01-02",
-          "weekday": "Föstudagur",
-          "day_number": 2,
-          "month": "janúar",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2026-01-03",
-          "weekday": "Laugardagur",
-          "day_number": 3,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-04",
-          "weekday": "Sunnudagur",
-          "day_number": 4,
-          "month": "janúar",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 23,
-      "start_date": "2026-01-05",
-      "days": [
-        {
-          "date": "2026-01-05",
-          "weekday": "Mánudagur",
-          "day_number": 5,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-06",
-          "weekday": "Þriðjudagur",
-          "day_number": 6,
-          "month": "janúar",
-          "events": [
-            "Þrettándinn"
-          ]
-        },
-        {
-          "date": "2026-01-07",
-          "weekday": "Miðvikudagur",
-          "day_number": 7,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-08",
-          "weekday": "Fimmtudagur",
-          "day_number": 8,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-09",
-          "weekday": "Föstudagur",
-          "day_number": 9,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-10",
-          "weekday": "Laugardagur",
-          "day_number": 10,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-11",
-          "weekday": "Sunnudagur",
-          "day_number": 11,
-          "month": "janúar",
-          "events": [
-            "Samtöl"
-          ]
-        }
-      ]
-    },
-    {
-      "week_number": 24,
-      "start_date": "2026-01-12",
-      "days": [
-        {
-          "date": "2026-01-12",
-          "weekday": "Mánudagur",
-          "day_number": 12,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-13",
-          "weekday": "Þriðjudagur",
-          "day_number": 13,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-14",
-          "weekday": "Miðvikudagur",
-          "day_number": 14,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-15",
-          "weekday": "Fimmtudagur",
-          "day_number": 15,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-16",
-          "weekday": "Föstudagur",
-          "day_number": 16,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-17",
-          "weekday": "Laugardagur",
-          "day_number": 17,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-18",
-          "weekday": "Sunnudagur",
-          "day_number": 18,
-          "month": "janúar",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 25,
-      "start_date": "2026-01-19",
-      "days": [
-        {
-          "date": "2026-01-19",
-          "weekday": "Mánudagur",
-          "day_number": 19,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-20",
-          "weekday": "Þriðjudagur",
-          "day_number": 20,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-21",
-          "weekday": "Miðvikudagur",
-          "day_number": 21,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-22",
-          "weekday": "Fimmtudagur",
-          "day_number": 22,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-23",
-          "weekday": "Föstudagur",
-          "day_number": 23,
-          "month": "janúar",
-          "events": [
-            "Bóndadagur - upphaf Þorra"
-          ]
-        },
-        {
-          "date": "2026-01-24",
-          "weekday": "Laugardagur",
-          "day_number": 24,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-25",
-          "weekday": "Sunnudagur",
-          "day_number": 25,
-          "month": "janúar",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 26,
-      "start_date": "2026-01-26",
-      "days": [
-        {
-          "date": "2026-01-26",
-          "weekday": "Mánudagur",
-          "day_number": 26,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-27",
-          "weekday": "Þriðjudagur",
-          "day_number": 27,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-28",
-          "weekday": "Miðvikudagur",
-          "day_number": 28,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-29",
-          "weekday": "Fimmtudagur",
-          "day_number": 29,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-30",
-          "weekday": "Föstudagur",
-          "day_number": 30,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-01-31",
-          "weekday": "Laugardagur",
-          "day_number": 31,
-          "month": "janúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-01",
-          "weekday": "Sunnudagur",
-          "day_number": 1,
-          "month": "febrúar",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 27,
-      "start_date": "2026-02-02",
-      "days": [
-        {
-          "date": "2026-02-02",
-          "weekday": "Mánudagur",
-          "day_number": 2,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-03",
-          "weekday": "Þriðjudagur",
-          "day_number": 3,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-04",
-          "weekday": "Miðvikudagur",
-          "day_number": 4,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-05",
-          "weekday": "Fimmtudagur",
-          "day_number": 5,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-06",
-          "weekday": "Föstudagur",
-          "day_number": 6,
-          "month": "febrúar",
-          "events": [
-            "Dagur leikskólans"
-          ]
-        },
-        {
-          "date": "2026-02-07",
-          "weekday": "Laugardagur",
-          "day_number": 7,
-          "month": "febrúar",
-          "events": [
-            "Dagur tónlistarskólans"
-          ]
-        },
-        {
-          "date": "2026-02-08",
-          "weekday": "Sunnudagur",
-          "day_number": 8,
-          "month": "febrúar",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 28,
-      "start_date": "2026-02-09",
-      "days": [
-        {
-          "date": "2026-02-09",
-          "weekday": "Mánudagur",
-          "day_number": 9,
-          "month": "febrúar",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2026-02-10",
-          "weekday": "Þriðjudagur",
-          "day_number": 10,
-          "month": "febrúar",
-          "events": [
-            "Samtöl"
-          ]
-        },
-        {
-          "date": "2026-02-11",
-          "weekday": "Miðvikudagur",
-          "day_number": 11,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-12",
-          "weekday": "Fimmtudagur",
-          "day_number": 12,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-13",
-          "weekday": "Föstudagur",
-          "day_number": 13,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-14",
-          "weekday": "Laugardagur",
-          "day_number": 14,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-15",
-          "weekday": "Sunnudagur",
-          "day_number": 15,
-          "month": "febrúar",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 29,
-      "start_date": "2026-02-16",
-      "days": [
-        {
-          "date": "2026-02-16",
-          "weekday": "Mánudagur",
-          "day_number": 16,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-17",
-          "weekday": "Þriðjudagur",
-          "day_number": 17,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-18",
-          "weekday": "Miðvikudagur",
-          "day_number": 18,
-          "month": "febrúar",
-          "events": [
-            "Starfsdagur",
-            "öskudagur"
-          ]
-        },
-        {
-          "date": "2026-02-19",
-          "weekday": "Fimmtudagur",
-          "day_number": 19,
-          "month": "febrúar",
-          "events": [
-            "Vetrarfrí"
-          ]
-        },
-        {
-          "date": "2026-02-20",
-          "weekday": "Föstudagur",
-          "day_number": 20,
-          "month": "febrúar",
-          "events": [
-            "Vetrarfrí"
-          ]
-        },
-        {
-          "date": "2026-02-21",
-          "weekday": "Laugardagur",
-          "day_number": 21,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-22",
-          "weekday": "Sunnudagur",
-          "day_number": 22,
-          "month": "febrúar",
-          "events": [
-            "Konudagur - upphaf Góu"
-          ]
-        }
-      ]
-    },
-    {
-      "week_number": 30,
-      "start_date": "2026-02-23",
-      "days": [
-        {
-          "date": "2026-02-23",
-          "weekday": "Mánudagur",
-          "day_number": 23,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-24",
-          "weekday": "Þriðjudagur",
-          "day_number": 24,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-25",
-          "weekday": "Miðvikudagur",
-          "day_number": 25,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-26",
-          "weekday": "Fimmtudagur",
-          "day_number": 26,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-27",
-          "weekday": "Föstudagur",
-          "day_number": 27,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-02-28",
-          "weekday": "Laugardagur",
-          "day_number": 28,
-          "month": "febrúar",
-          "events": []
-        },
-        {
-          "date": "2026-03-01",
-          "weekday": "Sunnudagur",
-          "day_number": 1,
-          "month": "mars",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 31,
-      "start_date": "2026-03-02",
-      "days": [
-        {
-          "date": "2026-03-02",
-          "weekday": "Mánudagur",
-          "day_number": 2,
-          "month": "mars",
-          "events": [
-            "Útivistardagur"
-          ]
-        },
-        {
-          "date": "2026-03-03",
-          "weekday": "Þriðjudagur",
-          "day_number": 3,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-04",
-          "weekday": "Miðvikudagur",
-          "day_number": 4,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-05",
-          "weekday": "Fimmtudagur",
-          "day_number": 5,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-06",
-          "weekday": "Föstudagur",
-          "day_number": 6,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-07",
-          "weekday": "Laugardagur",
-          "day_number": 7,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-08",
-          "weekday": "Sunnudagur",
-          "day_number": 8,
-          "month": "mars",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 32,
-      "start_date": "2026-03-09",
-      "days": [
-        {
-          "date": "2026-03-09",
-          "weekday": "Mánudagur",
-          "day_number": 9,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-10",
-          "weekday": "Þriðjudagur",
-          "day_number": 10,
-          "month": "mars",
-          "events": [
-            "Upphátt"
-          ]
-        },
-        {
-          "date": "2026-03-11",
-          "weekday": "Miðvikudagur",
-          "day_number": 11,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-12",
-          "weekday": "Fimmtudagur",
-          "day_number": 12,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-13",
-          "weekday": "Föstudagur",
-          "day_number": 13,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-14",
-          "weekday": "Laugardagur",
-          "day_number": 14,
-          "month": "mars",
-          "events": [
-            "Dagur stærðfræðinnar"
-          ]
-        },
-        {
-          "date": "2026-03-15",
-          "weekday": "Sunnudagur",
-          "day_number": 15,
-          "month": "mars",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 33,
-      "start_date": "2026-03-16",
-      "days": [
-        {
-          "date": "2026-03-16",
-          "weekday": "Mánudagur",
-          "day_number": 16,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-17",
-          "weekday": "Þriðjudagur",
-          "day_number": 17,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-18",
-          "weekday": "Miðvikudagur",
-          "day_number": 18,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-19",
-          "weekday": "Fimmtudagur",
-          "day_number": 19,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-20",
-          "weekday": "Föstudagur",
-          "day_number": 20,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-21",
-          "weekday": "Laugardagur",
-          "day_number": 21,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-22",
-          "weekday": "Sunnudagur",
-          "day_number": 22,
-          "month": "mars",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 34,
-      "start_date": "2026-03-23",
-      "days": [
-        {
-          "date": "2026-03-23",
-          "weekday": "Mánudagur",
-          "day_number": 23,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-24",
-          "weekday": "Þriðjudagur",
-          "day_number": 24,
-          "month": "mars",
-          "events": [
-            "Generalprufa"
-          ]
-        },
-        {
-          "date": "2026-03-25",
-          "weekday": "Miðvikudagur",
-          "day_number": 25,
-          "month": "mars",
-          "events": [
-            "Árshátíðx"
-          ]
-        },
-        {
-          "date": "2026-03-26",
-          "weekday": "Fimmtudagur",
-          "day_number": 26,
-          "month": "mars",
-          "events": [
-            "Árshátíðx"
-          ]
-        },
-        {
-          "date": "2026-03-27",
-          "weekday": "Föstudagur",
-          "day_number": 27,
-          "month": "mars",
-          "events": [
-            "Gulur dagur"
-          ]
-        },
-        {
-          "date": "2026-03-28",
-          "weekday": "Laugardagur",
-          "day_number": 28,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-29",
-          "weekday": "Sunnudagur",
-          "day_number": 29,
-          "month": "mars",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 35,
-      "start_date": "2026-03-30",
-      "days": [
-        {
-          "date": "2026-03-30",
-          "weekday": "Mánudagur",
-          "day_number": 30,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-03-31",
-          "weekday": "Þriðjudagur",
-          "day_number": 31,
-          "month": "mars",
-          "events": []
-        },
-        {
-          "date": "2026-04-01",
-          "weekday": "Miðvikudagur",
-          "day_number": 1,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-02",
-          "weekday": "Fimmtudagur",
-          "day_number": 2,
-          "month": "apríl",
-          "events": [
-            "Skírdagur"
-          ]
-        },
-        {
-          "date": "2026-04-03",
-          "weekday": "Föstudagur",
-          "day_number": 3,
-          "month": "apríl",
-          "events": [
-            "Föstudagurinn langi"
-          ]
-        },
-        {
-          "date": "2026-04-04",
-          "weekday": "Laugardagur",
-          "day_number": 4,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-05",
-          "weekday": "Sunnudagur",
-          "day_number": 5,
-          "month": "apríl",
-          "events": [
-            "Páskadagur"
-          ]
-        }
-      ]
-    },
-    {
-      "week_number": 36,
-      "start_date": "2026-04-06",
-      "days": [
-        {
-          "date": "2026-04-06",
-          "weekday": "Mánudagur",
-          "day_number": 6,
-          "month": "apríl",
-          "events": [
-            "Annar í Páskum"
-          ]
-        },
-        {
-          "date": "2026-04-07",
-          "weekday": "Þriðjudagur",
-          "day_number": 7,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-08",
-          "weekday": "Miðvikudagur",
-          "day_number": 8,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-09",
-          "weekday": "Fimmtudagur",
-          "day_number": 9,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-10",
-          "weekday": "Föstudagur",
-          "day_number": 10,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-11",
-          "weekday": "Laugardagur",
-          "day_number": 11,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-12",
-          "weekday": "Sunnudagur",
-          "day_number": 12,
-          "month": "apríl",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 37,
-      "start_date": "2026-04-13",
-      "days": [
-        {
-          "date": "2026-04-13",
-          "weekday": "Mánudagur",
-          "day_number": 13,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-14",
-          "weekday": "Þriðjudagur",
-          "day_number": 14,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-15",
-          "weekday": "Miðvikudagur",
-          "day_number": 15,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-16",
-          "weekday": "Fimmtudagur",
-          "day_number": 16,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-17",
-          "weekday": "Föstudagur",
-          "day_number": 17,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-18",
-          "weekday": "Laugardagur",
-          "day_number": 18,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-19",
-          "weekday": "Sunnudagur",
-          "day_number": 19,
-          "month": "apríl",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 38,
-      "start_date": "2026-04-20",
-      "days": [
-        {
-          "date": "2026-04-20",
-          "weekday": "Mánudagur",
-          "day_number": 20,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-21",
-          "weekday": "Þriðjudagur",
-          "day_number": 21,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-22",
-          "weekday": "Miðvikudagur",
-          "day_number": 22,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-23",
-          "weekday": "Fimmtudagur",
-          "day_number": 23,
-          "month": "apríl",
-          "events": [
-            "Sumardagurinn fyrsti"
-          ]
-        },
-        {
-          "date": "2026-04-24",
-          "weekday": "Föstudagur",
-          "day_number": 24,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-25",
-          "weekday": "Laugardagur",
-          "day_number": 25,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-26",
-          "weekday": "Sunnudagur",
-          "day_number": 26,
-          "month": "apríl",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 39,
-      "start_date": "2026-04-27",
-      "days": [
-        {
-          "date": "2026-04-27",
-          "weekday": "Mánudagur",
-          "day_number": 27,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-28",
-          "weekday": "Þriðjudagur",
-          "day_number": 28,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-29",
-          "weekday": "Miðvikudagur",
-          "day_number": 29,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-04-30",
-          "weekday": "Fimmtudagur",
-          "day_number": 30,
-          "month": "apríl",
-          "events": []
-        },
-        {
-          "date": "2026-05-01",
-          "weekday": "Föstudagur",
-          "day_number": 1,
-          "month": "maí",
-          "events": [
-            "Verkalýðsdagurinn"
-          ]
-        },
-        {
-          "date": "2026-05-02",
-          "weekday": "Laugardagur",
-          "day_number": 2,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-03",
-          "weekday": "Sunnudagur",
-          "day_number": 3,
-          "month": "maí",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 40,
-      "start_date": "2026-05-04",
-      "days": [
-        {
-          "date": "2026-05-04",
-          "weekday": "Mánudagur",
-          "day_number": 4,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-05",
-          "weekday": "Þriðjudagur",
-          "day_number": 5,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-06",
-          "weekday": "Miðvikudagur",
-          "day_number": 6,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-07",
-          "weekday": "Fimmtudagur",
-          "day_number": 7,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-08",
-          "weekday": "Föstudagur",
-          "day_number": 8,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-09",
-          "weekday": "Laugardagur",
-          "day_number": 9,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-10",
-          "weekday": "Sunnudagur",
-          "day_number": 10,
-          "month": "maí",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 41,
-      "start_date": "2026-05-11",
-      "days": [
-        {
-          "date": "2026-05-11",
-          "weekday": "Mánudagur",
-          "day_number": 11,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-12",
-          "weekday": "Þriðjudagur",
-          "day_number": 12,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-13",
-          "weekday": "Miðvikudagur",
-          "day_number": 13,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-14",
-          "weekday": "Fimmtudagur",
-          "day_number": 14,
-          "month": "maí",
-          "events": [
-            "Uppstigningardagur"
-          ]
-        },
-        {
-          "date": "2026-05-15",
-          "weekday": "Föstudagur",
-          "day_number": 15,
-          "month": "maí",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2026-05-16",
-          "weekday": "Laugardagur",
-          "day_number": 16,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-17",
-          "weekday": "Sunnudagur",
-          "day_number": 17,
-          "month": "maí",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 42,
-      "start_date": "2026-05-18",
-      "days": [
-        {
-          "date": "2026-05-18",
-          "weekday": "Mánudagur",
-          "day_number": 18,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-19",
-          "weekday": "Þriðjudagur",
-          "day_number": 19,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-20",
-          "weekday": "Miðvikudagur",
-          "day_number": 20,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-21",
-          "weekday": "Fimmtudagur",
-          "day_number": 21,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-22",
-          "weekday": "Föstudagur",
-          "day_number": 22,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-23",
-          "weekday": "Laugardagur",
-          "day_number": 23,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-24",
-          "weekday": "Sunnudagur",
-          "day_number": 24,
-          "month": "maí",
-          "events": [
-            "Hvítasunnudagur"
-          ]
-        }
-      ]
-    },
-    {
-      "week_number": 43,
-      "start_date": "2026-05-25",
-      "days": [
-        {
-          "date": "2026-05-25",
-          "weekday": "Mánudagur",
-          "day_number": 25,
-          "month": "maí",
-          "events": [
-            "Annar í Hvítasunnu"
-          ]
-        },
-        {
-          "date": "2026-05-26",
-          "weekday": "Þriðjudagur",
-          "day_number": 26,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-27",
-          "weekday": "Miðvikudagur",
-          "day_number": 27,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-28",
-          "weekday": "Fimmtudagur",
-          "day_number": 28,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-29",
-          "weekday": "Föstudagur",
-          "day_number": 29,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-30",
-          "weekday": "Laugardagur",
-          "day_number": 30,
-          "month": "maí",
-          "events": []
-        },
-        {
-          "date": "2026-05-31",
-          "weekday": "Sunnudagur",
-          "day_number": 31,
-          "month": "maí",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 44,
-      "start_date": "2026-06-01",
-      "days": [
-        {
-          "date": "2026-06-01",
-          "weekday": "Mánudagur",
-          "day_number": 1,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-02",
-          "weekday": "Þriðjudagur",
-          "day_number": 2,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-03",
-          "weekday": "Miðvikudagur",
-          "day_number": 3,
-          "month": "júní",
-          "events": [
-            "Fjölgreindaleikar"
-          ]
-        },
-        {
-          "date": "2026-06-04",
-          "weekday": "Fimmtudagur",
-          "day_number": 4,
-          "month": "júní",
-          "events": [
-            "Uppbrotsdagur"
-          ]
-        },
-        {
-          "date": "2026-06-05",
-          "weekday": "Föstudagur",
-          "day_number": 5,
-          "month": "júní",
-          "events": [
-            "Skólaslit"
-          ]
-        },
-        {
-          "date": "2026-06-06",
-          "weekday": "Laugardagur",
-          "day_number": 6,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-07",
-          "weekday": "Sunnudagur",
-          "day_number": 7,
-          "month": "júní",
-          "events": [
-            "Sjómannadagurinn"
-          ]
-        }
-      ]
-    },
-    {
-      "week_number": 45,
-      "start_date": "2026-06-08",
-      "days": [
-        {
-          "date": "2026-06-08",
-          "weekday": "Mánudagur",
-          "day_number": 8,
-          "month": "júní",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2026-06-09",
-          "weekday": "Þriðjudagur",
-          "day_number": 9,
-          "month": "júní",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2026-06-10",
-          "weekday": "Miðvikudagur",
-          "day_number": 10,
-          "month": "júní",
-          "events": [
-            "Starfsdagur"
-          ]
-        },
-        {
-          "date": "2026-06-11",
-          "weekday": "Fimmtudagur",
-          "day_number": 11,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-12",
-          "weekday": "Föstudagur",
-          "day_number": 12,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-13",
-          "weekday": "Laugardagur",
-          "day_number": 13,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-14",
-          "weekday": "Sunnudagur",
-          "day_number": 14,
-          "month": "júní",
-          "events": []
-        }
-      ]
-    },
-    {
-      "week_number": 46,
-      "start_date": "2026-06-15",
-      "days": [
-        {
-          "date": "2026-06-15",
-          "weekday": "Mánudagur",
-          "day_number": 15,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-16",
-          "weekday": "Þriðjudagur",
-          "day_number": 16,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-17",
-          "weekday": "Miðvikudagur",
-          "day_number": 17,
-          "month": "júní",
-          "events": [
-            "Lýðveldisdagurinn"
-          ]
-        },
-        {
-          "date": "2026-06-18",
-          "weekday": "Fimmtudagur",
-          "day_number": 18,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-19",
-          "weekday": "Föstudagur",
-          "day_number": 19,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-20",
-          "weekday": "Laugardagur",
-          "day_number": 20,
-          "month": "júní",
-          "events": []
-        },
-        {
-          "date": "2026-06-21",
-          "weekday": "Sunnudagur",
-          "day_number": 21,
-          "month": "júní",
-          "events": []
-        }
-      ]
-    }
-  ]
-};
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let calendarData = null;
         let currentWeekIndex = 0;
+
+        function showChangeModal() {
+            document.getElementById('changeModal').style.display = 'block';
+        }
+
+        function hideChangeModal() {
+            document.getElementById('changeModal').style.display = 'none';
+        }
+
+        function confirmChange() {
+            hideChangeModal();
+            document.getElementById('fileInput').click();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                await processPDF(file);
+            }
+            e.target.value = ''; // Reset file input
+        });
+
+        async function processPDF(file) {
+            const display = document.getElementById('weekDisplay');
+            display.innerHTML = '<div class="loading">⏳ Les PDF skjal og dregur út viðburði...</div>';
+            display.style.display = 'block';
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const page = await pdf.getPage(1);
+                const textContent = await page.getTextContent();
+                
+                // Get text - join items on same line properly
+                const textItems = textContent.items.map(item => ({
+                    text: item.str,
+                    x: item.transform[4],
+                    y: item.transform[5]
+                }));
+                
+                // Group by Y coordinate (lines)
+                const lineGroups = {};
+                textItems.forEach(item => {
+                    const y = Math.round(item.y);
+                    if (!lineGroups[y]) lineGroups[y] = [];
+                    lineGroups[y].push(item);
+                });
+                
+                // Sort by Y (descending) and build lines
+                const sortedYs = Object.keys(lineGroups).map(Number).sort((a, b) => b - a);
+                const lines = sortedYs.map(y => {
+                    const items = lineGroups[y].sort((a, b) => a.x - b.x);
+                    return items.map(item => item.text).join('');
+                });
+                
+                console.log('Fjöldi lína:', lines.length);
+                console.log('Fyrstu 10 línur:', lines.slice(0, 10));
+                
+                // Extract school name
+                let schoolName = 'Skóli';
+                for (let line of lines.slice(0, 5)) {
+                    if (line.includes('Nafn skóla:')) {
+                        const parts = line.split('Nafn skóla:');
+                        if (parts.length > 1) {
+                            schoolName = parts[1].split(',')[0].trim();
+                        }
+                        break;
+                    }
+                }
+                
+                // Extract school year
+                let schoolYear = null;
+                for (let line of lines.slice(0, 10)) {
+                    const match = line.match(/(\d{4})\s*-\s*(\d{4})/);
+                    if (match) {
+                        schoolYear = `${match[1]}-${match[2]}`;
+                        break;
+                    }
+                }
+                
+                if (!schoolYear) {
+                    alert('Gat ekki fundið skólaár í PDF. Vinsamlegast athugaðu að PDF sé rétt snið.');
+                    display.style.display = 'none';
+                    return;
+                }
+                
+                console.log('Skóli:', schoolName);
+                console.log('Ár:', schoolYear);
+                
+                // Parse events
+                const events = parseEvents(lines, schoolYear);
+                console.log('Fjöldi viðburða:', Object.keys(events).length);
+                
+                if (Object.keys(events).length === 0) {
+                    alert('Gat ekki fundið neina viðburði í PDF. Vinsamlegast athugaðu að PDF sé rétt snið.');
+                    display.style.display = 'none';
+                    return;
+                }
+                
+                // Generate weeks
+                const weeks = generateWeeks(events, schoolYear);
+                console.log('Fjöldi vikna:', weeks.length);
+                
+                if (weeks.length === 0) {
+                    alert('Gat ekki búið til vikur. Athugaðu dagsetningar í PDF.');
+                    display.style.display = 'none';
+                    return;
+                }
+                
+                calendarData = { school: schoolName, year: schoolYear, weeks: weeks };
+                
+                document.getElementById('schoolInfo').textContent = `${schoolName} • ${schoolYear}`;
+                document.getElementById('uploadSection').style.display = 'none';
+                document.getElementById('changeBtn').style.display = 'block';
+                document.getElementById('controls').style.display = 'block';
+                
+                currentWeekIndex = findCurrentWeek();
+                populateWeekSelector();
+                displayWeek(currentWeekIndex);
+                
+            } catch (error) {
+                console.error('Villa:', error);
+                alert('Villa við að lesa PDF: ' + error.message);
+                display.style.display = 'none';
+            }
+        }
+
+        function parseEvents(lines, schoolYear) {
+            const events = {};
+            const months = ['ÁGÚST', 'SEPTEMBER', 'OKTÓBER', 'NÓVEMBER', 'DESEMBER', 
+                          'JANÚAR', 'FEBRÚAR', 'MARS', 'APRÍL', 'MAÍ', 'JÚNÍ'];
+            const monthNumbers = [8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6];
+            
+            const yearParts = schoolYear.split('-');
+            const startYear = parseInt(yearParts[0]);
+            
+            const getYearForMonth = (monthNum) => monthNum >= 8 ? startYear : startYear + 1;
+            
+            let monthLineIdx = -1;
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('ÁGÚST') && lines[i].includes('SEPTEMBER')) {
+                    monthLineIdx = i;
+                    console.log('Fann mánuðalínu í línu', i);
+                    break;
+                }
+            }
+            
+            if (monthLineIdx === -1) {
+                console.error('Gat ekki fundið mánuðalínu');
+                return events;
+            }
+            
+            for (let lineIdx = monthLineIdx + 1; lineIdx < lines.length; lineIdx++) {
+                const line = lines[lineIdx];
+                
+                if (line.includes('Samkvæmt') || line.includes('Sérstakir') || line.includes('Starfsdagar')) {
+                    break;
+                }
+                
+                if (!line.trim()) continue;
+                
+                const parts = line.trim().split(/\s+/);
+                if (!parts[0]) continue;
+                
+                const firstPart = parts[0].replace(/[SMÞFL]/gi, '');
+                if (!firstPart || isNaN(firstPart)) continue;
+                
+                const dayNum = parseInt(firstPart);
+                const regex = new RegExp(`\\b${dayNum}\\s*[SMÞFL]?\\s*`, 'gi');
+                const splitParts = line.split(regex);
+                const monthParts = splitParts.slice(1);
+                
+                for (let monthIdx = 0; monthIdx < Math.min(monthParts.length, months.length); monthIdx++) {
+                    const part = monthParts[monthIdx];
+                    const cleanText = part.replace(/\s*\d+\s*[SMÞFL]?.*$/i, '').trim();
+                    
+                    if (cleanText && cleanText.length > 1 && !/^[SMÞFL\s]*$/i.test(cleanText)) {
+                        const monthNum = monthNumbers[monthIdx];
+                        const year = getYearForMonth(monthNum);
+                        const dateKey = `${year}-${monthNum}-${dayNum}`;
+                        
+                        const eventList = cleanText.includes('/') ? cleanText.split('/') : [cleanText];
+                        if (!events[dateKey]) events[dateKey] = [];
+                        
+                        eventList.forEach(e => {
+                            const clean = e.trim();
+                            if (clean && !events[dateKey].includes(clean)) {
+                                events[dateKey].push(clean);
+                            }
+                        });
+                    }
+                }
+            }
+            
+            return events;
+        }
+
+        function generateWeeks(events, schoolYear) {
+            const allDates = [];
+            
+            for (let dateStr in events) {
+                try {
+                    const [year, month, day] = dateStr.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    
+                    if (!isNaN(date.getTime()) && 
+                        date.getFullYear() === year && 
+                        date.getMonth() === month - 1 && 
+                        date.getDate() === day) {
+                        allDates.push(date);
+                    }
+                } catch (e) {
+                    console.warn('Ógild dagsetning:', dateStr);
+                }
+            }
+            
+            if (allDates.length === 0) {
+                console.error('Engar gildar dagsetningar fundust');
+                return [];
+            }
+            
+            const minDate = new Date(Math.min(...allDates));
+            const maxDate = new Date(Math.max(...allDates));
+            
+            console.log('Dagsetningabil:', minDate.toISOString().split('T')[0], 'til', maxDate.toISOString().split('T')[0]);
+            
+            const startDate = new Date(minDate);
+            const dayOfWeek = startDate.getDay();
+            const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+            startDate.setDate(startDate.getDate() + daysToMonday);
+            
+            const endDate = new Date(maxDate);
+            const daysToSunday = 7 - endDate.getDay();
+            if (daysToSunday < 7) {
+                endDate.setDate(endDate.getDate() + daysToSunday);
+            }
+            
+            const weeks = [];
+            const current = new Date(startDate);
+            let weekNumber = 1;
+            
+            const weekdayNames = ['Mánudagur', 'Þriðjudagur', 'Miðvikudagur', 'Fimmtudagur', 'Föstudagur', 'Laugardagur', 'Sunnudagur'];
+            const monthNames = ['', 'janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
+            
+            while (current <= endDate) {
+                const week = {
+                    week_number: weekNumber,
+                    start_date: current.toISOString().split('T')[0],
+                    days: []
+                };
+                
+                for (let i = 0; i < 7; i++) {
+                    const day = new Date(current);
+                    day.setDate(current.getDate() + i);
+                    
+                    const dateKey = `${day.getFullYear()}-${day.getMonth() + 1}-${day.getDate()}`;
+                    const dayEvents = events[dateKey] || [];
+                    
+                    week.days.push({
+                        date: day.toISOString().split('T')[0],
+                        weekday: weekdayNames[i],
+                        day_number: day.getDate(),
+                        month: monthNames[day.getMonth() + 1],
+                        events: [...dayEvents]
+                    });
+                }
+                
+                weeks.push(week);
+                weekNumber++;
+                current.setDate(current.getDate() + 7);
+            }
+            
+            console.log('Fjöldi vikna:', weeks.length);
+            return weeks;
+        }
+
         function findCurrentWeek() {
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            if (!calendarData || !calendarData.weeks || calendarData.weeks.length === 0) return 0;
+            const today = new Date().toISOString().split('T')[0];
             const index = calendarData.weeks.findIndex(week => {
-                const weekStart = new Date(week.start_date);
-                const weekEnd = new Date(week.days[6].date);
-                const todayDate = new Date(todayStr);
-                return todayDate >= weekStart && todayDate <= weekEnd;
+                const start = new Date(week.start_date);
+                const end = new Date(week.days[6].date);
+                const current = new Date(today);
+                return current >= start && current <= end;
             });
             return index === -1 ? 0 : index;
         }
+
         function populateWeekSelector() {
             const select = document.getElementById('weekSelect');
             select.innerHTML = '';
             calendarData.weeks.forEach((week, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                const startDate = formatDateIcelandic(new Date(week.start_date));
-                const endDate = formatDateIcelandic(new Date(week.days[6].date));
-                option.textContent = `Vika ${week.week_number}: ${startDate} - ${endDate}`;
+                const start = new Date(week.start_date);
+                const end = new Date(week.days[6].date);
+                option.textContent = `Vika ${week.week_number}: ${start.getDate()}. ${start.getMonth()+1}. - ${end.getDate()}. ${end.getMonth()+1}.`;
                 select.appendChild(option);
             });
             select.value = currentWeekIndex;
@@ -2769,50 +425,68 @@
                 displayWeek(currentWeekIndex);
             });
         }
-        function formatDateIcelandic(date) { return `${date.getDate()}. ${date.getMonth() + 1}.`; }
-        function formatFullDate(dateStr) {
-            const date = new Date(dateStr);
-            const monthNames = ['', 'janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
-            return `${date.getDate()}. ${monthNames[date.getMonth() + 1]}`;
-        }
-        function getEventClass(event) {
-            const lowerEvent = event.toLowerCase();
-            if (lowerEvent.includes('starfsdagur')) return 'starfsdagur';
-            if (lowerEvent.includes('frí') || lowerEvent.includes('dagur')) return 'fri';
-            if (lowerEvent.includes('skólaslit') || lowerEvent.includes('skólasetning') || lowerEvent.includes('árshátíð') || lowerEvent.includes('jól')) return 'special';
-            return '';
-        }
+
         function displayWeek(weekIndex) {
             const week = calendarData.weeks[weekIndex];
             const display = document.getElementById('weekDisplay');
-            const startDate = formatDateIcelandic(new Date(week.start_date));
-            const endDate = formatDateIcelandic(new Date(week.days[6].date));
-            let html = `<div class="week-header"><div class="week-title">Vika ${week.week_number}</div><div class="week-dates">${startDate} - ${endDate}</div></div><div class="days-grid">`;
+            const start = new Date(week.start_date);
+            const end = new Date(week.days[6].date);
+            
+            let html = `<div class="week-header"><div class="week-title">Vika ${week.week_number}</div><div class="week-dates">${start.getDate()}. ${start.getMonth()+1}. - ${end.getDate()}. ${end.getMonth()+1}.</div></div><div class="days-grid">`;
+            
             week.days.forEach(day => {
                 const isWeekend = day.weekday === 'Laugardagur' || day.weekday === 'Sunnudagur';
                 const hasEvents = day.events && day.events.length > 0;
-                html += `<div class="day-card ${hasEvents ? 'has-event' : ''} ${isWeekend ? 'weekend' : ''}"><div class="day-header"><div class="day-name">${day.weekday}</div><div class="day-date">${formatFullDate(day.date)}</div></div><div class="events">`;
+                const eventClass = hasEvents ? 'has-event' : '';
+                const weekendClass = isWeekend ? 'weekend' : '';
+                
+                html += `<div class="day-card ${eventClass} ${weekendClass}"><div class="day-header"><div class="day-name">${day.weekday}</div><div class="day-date">${day.day_number}. ${day.month}</div></div><div class="events">`;
+                
                 if (hasEvents) {
                     day.events.forEach(event => {
-                        const eventClass = getEventClass(event);
-                        html += `<span class="event-tag ${eventClass}">${event}</span>`;
+                        let className = '';
+                        if (event.toLowerCase().includes('starfsdagur')) className = 'starfsdagur';
+                        else if (event.toLowerCase().includes('frí') || event.toLowerCase().includes('dagur')) className = 'fri';
+                        else if (event.toLowerCase().match(/skólaslit|skólasetning|árshátíð|jól/)) className = 'special';
+                        html += `<span class="event-tag ${className}">${event}</span>`;
                     });
                 } else {
-                    html += `<span class="no-events">Engir sérstakir viðburðir</span>`;
+                    html += '<span class="no-events">Engir sérstakir viðburðir</span>';
                 }
-                html += `</div></div>`;
+                
+                html += '</div></div>';
             });
-            html += `</div>`;
+            
+            html += '</div>';
             display.innerHTML = html;
+            display.style.display = 'block';
+            
             document.getElementById('prevBtn').disabled = weekIndex === 0;
             document.getElementById('nextBtn').disabled = weekIndex === calendarData.weeks.length - 1;
             document.getElementById('weekSelect').value = weekIndex;
         }
-        document.getElementById('prevBtn').addEventListener('click', () => { if (currentWeekIndex > 0) { currentWeekIndex--; displayWeek(currentWeekIndex); } });
-        document.getElementById('nextBtn').addEventListener('click', () => { if (currentWeekIndex < calendarData.weeks.length - 1) { currentWeekIndex++; displayWeek(currentWeekIndex); } });
-        currentWeekIndex = findCurrentWeek();
-        populateWeekSelector();
-        displayWeek(currentWeekIndex);
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentWeekIndex > 0) {
+                currentWeekIndex--;
+                displayWeek(currentWeekIndex);
+            }
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            if (currentWeekIndex < calendarData.weeks.length - 1) {
+                currentWeekIndex++;
+                displayWeek(currentWeekIndex);
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('changeModal');
+            if (event.target == modal) {
+                hideChangeModal();
+            }
+        }
     </script>
 </body>
 </html>
