@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Skóladagatal Generator
-Lesa PDF skóladagatal og búa til HTML app
+Skóladagatal Generator - Les allt úr PDF (LAGAÐ)
 """
 
 import pdfplumber
 import json
 import sys
+import re
 from datetime import datetime, timedelta
 from pathlib import Path
 
 def parse_calendar_pdf(pdf_path):
-    """Les PDF og nær í allar upplýsingar"""
+    """Les PDF og nær í ALLAR upplýsingar úr skjalinu"""
     
     print(f"📄 Les PDF skjal: {pdf_path}")
     
@@ -28,24 +28,23 @@ def parse_calendar_pdf(pdf_path):
                 break
         
         # Sækja skólaár
-        school_year = "2025-2026"
-        for line in lines[:5]:
-            if "Skóladagatal" in line and "-" in line:
-                parts = line.split()
-                for i, part in enumerate(parts):
-                    if "-" in part and len(part) == 9:  # Format: 2025-2026
-                        school_year = part
-                        break
-                    elif part.isdigit() and len(part) == 4 and i+1 < len(parts):
-                        if parts[i+1] == "-" and i+2 < len(parts) and parts[i+2].isdigit():
-                            school_year = f"{part}-{parts[i+2]}"
-                            break
+        school_year = None
+        for line in lines[:10]:
+            if "Skóladagatal" in line or any(char.isdigit() for char in line):
+                match = re.search(r'(\d{4})\s*-\s*(\d{4})', line)
+                if match:
+                    school_year = f"{match.group(1)}-{match.group(2)}"
+                    break
+        
+        if not school_year:
+            print("⚠️ Gat ekki fundið skólaár í PDF, nota 2025-2026 sem sjálfgefið")
+            school_year = "2025-2026"
         
         print(f"🏫 Skóli: {school_name}")
         print(f"📅 Ár: {school_year}")
         
         # Parse viðburði úr PDF
-        events = parse_events_from_pdf(text, lines)
+        events = parse_events_from_calendar_lines(lines, school_year)
         
         return {
             'school': school_name,
@@ -53,130 +52,151 @@ def parse_calendar_pdf(pdf_path):
             'events': events
         }
 
-def parse_events_from_pdf(text, lines):
-    """
-    Reynir að lesa viðburði úr PDF.
-    Þetta er einfölduð útgáfa - fyrir flóknari PDF þarf að bæta við parsing logic.
-    """
+def parse_events_from_calendar_lines(lines, school_year):
+    """Les viðburði beint úr dagatals-línunum í PDF með lagaðri röðun"""
     
     events = {}
     
-    # Mánuðir og dagsetningar
-    months = {
-        'ÁGÚST': 8, 'SEPTEMBER': 9, 'OKTÓBER': 10, 'NÓVEMBER': 11,
-        'DESEMBER': 12, 'JANÚAR': 1, 'FEBRÚAR': 2, 'MARS': 3,
-        'APRÍL': 4, 'MAÍ': 5, 'JÚNÍ': 6
-    }
+    # Mánuðir í röð
+    months = ['ÁGÚST', 'SEPTEMBER', 'OKTÓBER', 'NÓVEMBER', 'DESEMBER', 
+              'JANÚAR', 'FEBRÚAR', 'MARS', 'APRÍL', 'MAÍ', 'JÚNÍ']
+    month_numbers = [8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6]
     
-    # Viðburðir sem við þekkjum (harðkóðaðir fyrir Lundarskóla 2025-2026)
-    # Þetta væri betri að lesa úr PDF en það er mjög flókið
-    known_events = {
-        # Ágúst 2025
-        '2025-8-1': ['Útivistardagur'],
-        '2025-8-4': ['Frídagur verslunarmanna'],
-        '2025-8-13': ['Fræðsludagur'],
-        '2025-8-14': ['Fræðsludagur'],
-        '2025-8-15': ['Starfsdagur'],
-        '2025-8-18': ['Starfsdagur'],
-        '2025-8-19': ['Starfsdagur'],
-        '2025-8-20': ['Starfsdagur'],
-        '2025-8-21': ['Starfsdagur'],
-        '2025-8-22': ['Skólasetning'],
-        
-        # September 2025
-        '2025-9-1': ['Útivistardagur'],
-        '2025-9-8': ['Dagur læsis'],
-        '2025-9-16': ['Dagur íslenskrar náttúru'],
-        
-        # Október 2025
-        '2025-10-5': ['Samtöl'],
-        '2025-10-11': ['Fæðingardagur forseta Íslands'],
-        '2025-10-15': ['Þemadagar'],
-        '2025-10-16': ['Þemadagar'],
-        '2025-10-17': ['Þemadagar'],
-        '2025-10-20': ['Haustfrí'],
-        '2025-10-21': ['Haustfrí'],
-        '2025-10-22': ['Starfsdagur'],
-        '2025-10-25': ['Fyrsti vetrardagur'],
-        
-        # Nóvember 2025
-        '2025-11-8': ['Baráttudagur gegn einelti'],
-        '2025-11-16': ['Dagur íslenskrar tungu'],
-        '2025-11-20': ['Dagur mannréttinda barna'],
-        
-        # Desember 2025
-        '2025-12-1': ['Fullveldisdagurinn'],
-        '2025-12-18': ['Rauður dagur'],
-        '2025-12-19': ['Litlu jól'],
-        '2025-12-23': ['Þorláksmessa'],
-        '2025-12-24': ['Aðfangadagur jóla'],
-        '2025-12-25': ['Jóladagur'],
-        '2025-12-26': ['Annar í jólum'],
-        '2025-12-28': ['Jólaundirbúningur'],
-        '2025-12-31': ['Gamlársdagur'],
-        
-        # Janúar 2026
-        '2026-1-1': ['Nýársdagur'],
-        '2026-1-2': ['Starfsdagur'],
-        '2026-1-6': ['Þrettándinn'],
-        
-        # Febrúar 2026
-        '2026-2-6': ['Dagur leikskólans'],
-        '2026-2-7': ['Dagur tónlistarskólans'],
-        '2026-2-9': ['Starfsdagur'],
-        '2026-2-10': ['Samtöl'],
-        '2026-2-18': ['Starfsdagur', 'Öskudagur'],
-        '2026-2-19': ['Vetrarfrí'],
-        '2026-2-20': ['Vetrarfrí'],
-        '2026-2-22': ['Konudagur - upphaf Góu'],
-        '2026-2-23': ['Bóndadagur - upphaf Þorra'],
-        
-        # Mars 2026
-        '2026-3-1': ['Útivistardagur'],
-        '2026-3-11': ['Samtöl'],
-        '2026-3-14': ['Dagur stærðfræðinnar'],
-        
-        # Apríl 2026
-        '2026-4-2': ['Skírdagur'],
-        '2026-4-3': ['Föstudagurinn langi'],
-        '2026-4-5': ['Páskadagur'],
-        '2026-4-6': ['Annar í Páskum'],
-        '2026-4-23': ['Sumardagurinn fyrsti'],
-        '2026-4-24': ['Generalprufa'],
-        '2026-4-25': ['Árshátíð'],
-        '2026-4-26': ['Árshátíð'],
-        '2026-4-27': ['Gulur dagur'],
-        '2026-4-29': ['Pálmasunnudagur'],
-        
-        # Maí 2026
-        '2026-5-1': ['Verkalýðsdagurinn'],
-        '2026-5-3': ['Fjölgreindaleikar'],
-        '2026-5-4': ['Uppbrotsdagur'],
-        '2026-5-5': ['Skólaslit'],
-        '2026-5-14': ['Uppstigningardagur'],
-        '2026-5-15': ['Starfsdagur'],
-        '2026-5-24': ['Hvítasunnudagur'],
-        '2026-5-25': ['Annar í Hvítasunnu'],
-        
-        # Júní 2026
-        '2026-6-7': ['Sjómannadagurinn'],
-        '2026-6-8': ['Starfsdagur'],
-        '2026-6-9': ['Starfsdagur'],
-        '2026-6-10': ['Starfsdagur'],
-        '2026-6-17': ['Lýðveldisdagurinn'],
-    }
+    # Finna mánuða-línuna
+    month_line_idx = -1
+    for i, line in enumerate(lines):
+        if 'ÁGÚST' in line and 'SEPTEMBER' in line:
+            month_line_idx = i
+            break
     
-    return known_events
-
-def generate_weeks_data(events, year_str="2025-2026"):
-    """Býr til vikugögn"""
+    if month_line_idx == -1:
+        print("⚠️  Gat ekki fundið mánuðalínu")
+        return events
     
-    # Ákveða upphafs- og enddagsetningu út frá skólaári
-    year_parts = year_str.split('-')
+    print(f"📆 Les viðburði úr PDF...")
+    
+    # Ákvarða ár fyrir hvern mánuð
+    year_parts = school_year.split('-')
     start_year = int(year_parts[0])
     
-    start_date = datetime(start_year, 8, 18)  # Byrjar í ágúst
-    end_date = datetime(start_year + 1, 6, 14)  # Endar í júní
+    def get_year_for_month(month_num):
+        return start_year if month_num >= 8 else start_year + 1
+    
+    # Fara í gegnum hverja dagatals-línu
+    event_count = 0
+    for line_idx in range(month_line_idx + 1, len(lines)):
+        line = lines[line_idx]
+        
+        # Stoppa ef við komum að textanum neðst
+        if 'Samkvæmt' in line or 'Sérstakir' in line or 'Starfsdagar' in line:
+            break
+        
+        if not line.strip():
+            continue
+        
+        # Athuga hvort lína byrji á dagnúmeri
+        parts = line.split()
+        if not parts:
+            continue
+            
+        first_part = parts[0].rstrip('SMÞFLsmþfl')
+        if not first_part.isdigit():
+            continue
+            
+        day_num = int(first_part)
+        
+        # Skipta línunni á dagnúmerinu til að fá hluta fyrir hvern mánuð
+        # Dæmi: "28F 28S 28Þ 28F Jólaundirbúningur 28S 28M..."
+        # Split gefur okkur: ['', 'S ', 'Þ ', 'F Jólaundirbúningur ', 'S ', 'M ', ...]
+        split_parts = re.split(rf'\b{day_num}\s*[SMÞFL]?\s*', line)
+        
+        # Fyrsti hlutinn er fyrir fyrsta dagnúmerið, svo við sleppum honum
+        month_parts = split_parts[1:]
+        
+        # Fara í gegnum hvern mánuð
+        for month_idx in range(min(len(month_parts), len(months))):
+            part = month_parts[month_idx]
+            
+            # Hreinsa burt næsta dagnúmer og allt eftir það
+            clean_text = re.sub(r'\s*\d+\s*[SMÞFL]?.*$', '', part).strip()
+            
+            # Athuga hvort það sé viðburður hér
+            if clean_text and len(clean_text) > 1:
+                # Athuga að þetta séu ekki bara vikudagsstafir
+                if not re.match(r'^[SMÞFL\s]*$', clean_text):
+                    month_num = month_numbers[month_idx]
+                    year = get_year_for_month(month_num)
+                    date_key = f"{year}-{month_num}-{day_num}"
+                    
+                    # Skipta upp ef margir viðburðir (með /)
+                    if '/' in clean_text:
+                        event_list = [e.strip() for e in clean_text.split('/')]
+                    else:
+                        event_list = [clean_text]
+                    
+                    if date_key not in events:
+                        events[date_key] = []
+                    
+                    for event in event_list:
+                        if event and event not in events[date_key]:
+                            events[date_key].append(event)
+                            event_count += 1
+    
+    print(f"✅ Fann {event_count} viðburði")
+    
+    # Sýna dæmi
+    if events:
+        print("📋 Dæmi um viðburði:")
+        count = 0
+        for date in sorted(events.keys()):
+            if count < 5:
+                print(f"   {date}: {', '.join(events[date])}")
+                count += 1
+    
+    return events
+
+def generate_weeks_data(events, year_str):
+    """Býr til vikugögn byggð á raunverulegum viðburðum"""
+    
+    if not events:
+        print("⚠️ Engir viðburðir fundnir, nota sjálfgefnar dagsetningar")
+        year_parts = year_str.split('-')
+        start_year = int(year_parts[0])
+        start_date = datetime(start_year, 8, 18)
+        end_date = datetime(start_year + 1, 6, 14)
+    else:
+        # Finna fyrsta og síðasta dag með viðburði
+        all_dates = []
+        for date_str in events.keys():
+            try:
+                parts = date_str.split('-')
+                year, month, day = int(parts[0]), int(parts[1]), int(parts[2])
+                all_dates.append(datetime(year, month, day))
+            except (ValueError, IndexError) as e:
+                print(f"⚠️ Sleppti ógildri dagsetningu: {date_str}")
+                continue
+        
+        if not all_dates:
+            print("⚠️ Engar gildar dagsetningar, nota sjálfgefnar")
+            year_parts = year_str.split('-')
+            start_year = int(year_parts[0])
+            start_date = datetime(start_year, 8, 18)
+            end_date = datetime(start_year + 1, 6, 14)
+        else:
+            min_date = min(all_dates)
+            max_date = max(all_dates)
+            
+            # Víkka tímabilið lítillega til að fá allar skólavikur
+            # Fara aftur í næsta mánudag fyrir min_date
+            days_to_monday = min_date.weekday()
+            start_date = min_date - timedelta(days=days_to_monday)
+            
+            # Fara fram að næsta sunnudegi eftir max_date
+            days_to_sunday = 6 - max_date.weekday()
+            end_date = max_date + timedelta(days=days_to_sunday)
+            
+            print(f"📆 Dagatal spannar: {min_date.date()} til {max_date.date()}")
+            print(f"📆 Vikur búnar til: {start_date.date()} til {end_date.date()}")
     
     weeks = []
     current_date = start_date
@@ -192,10 +212,7 @@ def generate_weeks_data(events, year_str="2025-2026"):
         'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'
     ]
     
-    print(f"📆 Býr til vikur frá {start_date.date()} til {end_date.date()}")
-    
     while current_date <= end_date:
-        # Finna mánudag vikunnar
         days_to_monday = (current_date.weekday()) % 7
         monday = current_date - timedelta(days=days_to_monday)
         
@@ -226,288 +243,51 @@ def generate_weeks_data(events, year_str="2025-2026"):
     return weeks
 
 def generate_html(calendar_data, output_path):
-    """Býr til HTML skjal með innbyggðum gögnum"""
+    """Býr til HTML skjal"""
     
     print(f"🌐 Býr til HTML skjal: {output_path}")
     
-    html_template = '''<!DOCTYPE html>
+    html_template = open('/home/claude/html_template.txt', 'r').read() if Path('/home/claude/html_template.txt').exists() else '''<!DOCTYPE html>
 <html lang="is">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skóladagatal - {school} {year}</title>
     <style>
-        * {{
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }}
-
-        body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }}
-
-        .container {{
-            max-width: 900px;
-            margin: 0 auto;
-        }}
-
-        .header {{
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            text-align: center;
-        }}
-
-        .header h1 {{
-            color: #333;
-            font-size: 28px;
-            margin-bottom: 10px;
-        }}
-
-        .header .school-year {{
-            color: #666;
-            font-size: 18px;
-            font-weight: 500;
-        }}
-
-        .controls {{
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }}
-
-        .control-row {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }}
-
-        .control-row:last-child {{
-            margin-bottom: 0;
-        }}
-
-        .week-selector {{
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex: 1;
-        }}
-
-        .week-selector select {{
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }}
-
-        .week-selector select:focus {{
-            outline: none;
-            border-color: #667eea;
-        }}
-
-        .nav-buttons {{
-            display: flex;
-            gap: 10px;
-        }}
-
-        .nav-btn {{
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }}
-
-        .nav-btn:hover {{
-            background: #5568d3;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }}
-
-        .nav-btn:active {{
-            transform: translateY(0);
-        }}
-
-        .nav-btn:disabled {{
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }}
-
-        .week-card {{
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            animation: fadeIn 0.4s ease;
-        }}
-
-        @keyframes fadeIn {{
-            from {{
-                opacity: 0;
-                transform: translateY(20px);
-            }}
-            to {{
-                opacity: 1;
-                transform: translateY(0);
-            }}
-        }}
-
-        .week-header {{
-            text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #f0f0f0;
-        }}
-
-        .week-title {{
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 5px;
-        }}
-
-        .week-dates {{
-            font-size: 16px;
-            color: #666;
-        }}
-
-        .days-grid {{
-            display: grid;
-            gap: 15px;
-        }}
-
-        .day-card {{
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            border-left: 4px solid #e0e0e0;
-            transition: all 0.3s ease;
-        }}
-
-        .day-card:hover {{
-            background: #f0f2f5;
-            transform: translateX(5px);
-        }}
-
-        .day-card.has-event {{
-            border-left-color: #667eea;
-            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
-        }}
-
-        .day-card.weekend {{
-            background: #fff8f0;
-            border-left-color: #ffa726;
-        }}
-
-        .day-card.weekend.has-event {{
-            background: linear-gradient(135deg, #fffaf5 0%, #fff0e5 100%);
-            border-left-color: #ff9800;
-        }}
-
-        .day-header {{
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }}
-
-        .day-name {{
-            font-weight: 600;
-            font-size: 18px;
-            color: #333;
-        }}
-
-        .day-date {{
-            font-size: 14px;
-            color: #666;
-            font-weight: 500;
-        }}
-
-        .events {{
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }}
-
-        .event-tag {{
-            background: #667eea;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            display: inline-block;
-        }}
-
-        .event-tag.special {{
-            background: #ff5722;
-        }}
-
-        .event-tag.starfsdagur {{
-            background: #4caf50;
-        }}
-
-        .event-tag.fri {{
-            background: #ff9800;
-        }}
-
-        .no-events {{
-            color: #999;
-            font-style: italic;
-            font-size: 14px;
-        }}
-
-        @media (max-width: 768px) {{
-            body {{
-                padding: 10px;
-            }}
-
-            .header {{
-                padding: 20px;
-            }}
-
-            .header h1 {{
-                font-size: 24px;
-            }}
-
-            .control-row {{
-                flex-direction: column;
-            }}
-
-            .week-selector {{
-                width: 100%;
-            }}
-
-            .nav-buttons {{
-                width: 100%;
-            }}
-
-            .nav-btn {{
-                flex: 1;
-            }}
-
-            .week-card {{
-                padding: 20px;
-            }}
-        }}
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }}
+        .container {{ max-width: 900px; margin: 0 auto; }}
+        .header {{ background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; }}
+        .header h1 {{ color: #333; font-size: 28px; margin-bottom: 10px; }}
+        .header .school-year {{ color: #666; font-size: 18px; font-weight: 500; }}
+        .controls {{ background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }}
+        .control-row {{ display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 15px; }}
+        .control-row:last-child {{ margin-bottom: 0; }}
+        .week-selector {{ display: flex; align-items: center; gap: 15px; flex: 1; }}
+        .week-selector select {{ flex: 1; padding: 12px; font-size: 16px; border: 2px solid #e0e0e0; border-radius: 8px; background: white; cursor: pointer; }}
+        .nav-buttons {{ display: flex; gap: 10px; }}
+        .nav-btn {{ background: #667eea; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s ease; }}
+        .nav-btn:hover {{ background: #5568d3; transform: translateY(-2px); }}
+        .nav-btn:disabled {{ background: #ccc; cursor: not-allowed; }}
+        .week-card {{ background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }}
+        .week-header {{ text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #f0f0f0; }}
+        .week-title {{ font-size: 24px; color: #333; margin-bottom: 5px; }}
+        .week-dates {{ font-size: 16px; color: #666; }}
+        .days-grid {{ display: grid; gap: 15px; }}
+        .day-card {{ background: #f8f9fa; border-radius: 10px; padding: 15px; border-left: 4px solid #e0e0e0; transition: all 0.3s ease; }}
+        .day-card:hover {{ background: #f0f2f5; transform: translateX(5px); }}
+        .day-card.has-event {{ border-left-color: #667eea; background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%); }}
+        .day-card.weekend {{ background: #fff8f0; border-left-color: #ffa726; }}
+        .day-card.weekend.has-event {{ background: linear-gradient(135deg, #fffaf5 0%, #fff0e5 100%); border-left-color: #ff9800; }}
+        .day-header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }}
+        .day-name {{ font-weight: 600; font-size: 18px; color: #333; }}
+        .day-date {{ font-size: 14px; color: #666; font-weight: 500; }}
+        .events {{ display: flex; flex-direction: column; gap: 8px; }}
+        .event-tag {{ background: #667eea; color: white; padding: 8px 12px; border-radius: 6px; font-size: 14px; font-weight: 500; }}
+        .event-tag.special {{ background: #ff5722; }}
+        .event-tag.starfsdagur {{ background: #4caf50; }}
+        .event-tag.fri {{ background: #ff9800; }}
+        .no-events {{ color: #999; font-style: italic; font-size: 14px; }}
     </style>
 </head>
 <body>
@@ -516,12 +296,9 @@ def generate_html(calendar_data, output_path):
             <h1>📚 Skóladagatal</h1>
             <div class="school-year">{school} • {year}</div>
         </div>
-
         <div class="controls">
             <div class="control-row">
-                <div class="week-selector">
-                    <select id="weekSelect"></select>
-                </div>
+                <div class="week-selector"><select id="weekSelect"></select></div>
             </div>
             <div class="control-row">
                 <div class="nav-buttons">
@@ -530,32 +307,25 @@ def generate_html(calendar_data, output_path):
                 </div>
             </div>
         </div>
-
         <div class="week-card" id="weekDisplay"></div>
     </div>
-
     <script>
         const calendarData = {calendar_json};
         let currentWeekIndex = 0;
-
         function findCurrentWeek() {{
             const today = new Date();
             const todayStr = today.toISOString().split('T')[0];
-            
             const index = calendarData.weeks.findIndex(week => {{
                 const weekStart = new Date(week.start_date);
                 const weekEnd = new Date(week.days[6].date);
                 const todayDate = new Date(todayStr);
                 return todayDate >= weekStart && todayDate <= weekEnd;
             }});
-
             return index === -1 ? 0 : index;
         }}
-
         function populateWeekSelector() {{
             const select = document.getElementById('weekSelect');
             select.innerHTML = '';
-
             calendarData.weeks.forEach((week, index) => {{
                 const option = document.createElement('option');
                 option.value = index;
@@ -564,62 +334,35 @@ def generate_html(calendar_data, output_path):
                 option.textContent = `Vika ${{week.week_number}}: ${{startDate}} - ${{endDate}}`;
                 select.appendChild(option);
             }});
-
             select.value = currentWeekIndex;
             select.addEventListener('change', (e) => {{
                 currentWeekIndex = parseInt(e.target.value);
                 displayWeek(currentWeekIndex);
             }});
         }}
-
-        function formatDateIcelandic(date) {{
-            return `${{date.getDate()}}. ${{date.getMonth() + 1}}.`;
-        }}
-
+        function formatDateIcelandic(date) {{ return `${{date.getDate()}}. ${{date.getMonth() + 1}}.`; }}
         function formatFullDate(dateStr) {{
             const date = new Date(dateStr);
-            const monthNames = ['', 'janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní',
-                               'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
+            const monthNames = ['', 'janúar', 'febrúar', 'mars', 'apríl', 'maí', 'júní', 'júlí', 'ágúst', 'september', 'október', 'nóvember', 'desember'];
             return `${{date.getDate()}}. ${{monthNames[date.getMonth() + 1]}}`;
         }}
-
         function getEventClass(event) {{
             const lowerEvent = event.toLowerCase();
             if (lowerEvent.includes('starfsdagur')) return 'starfsdagur';
             if (lowerEvent.includes('frí') || lowerEvent.includes('dagur')) return 'fri';
-            if (lowerEvent.includes('skólaslit') || lowerEvent.includes('skólasetning') || 
-                lowerEvent.includes('árshátíð') || lowerEvent.includes('jól')) return 'special';
+            if (lowerEvent.includes('skólaslit') || lowerEvent.includes('skólasetning') || lowerEvent.includes('árshátíð') || lowerEvent.includes('jól')) return 'special';
             return '';
         }}
-
         function displayWeek(weekIndex) {{
             const week = calendarData.weeks[weekIndex];
             const display = document.getElementById('weekDisplay');
-
             const startDate = formatDateIcelandic(new Date(week.start_date));
             const endDate = formatDateIcelandic(new Date(week.days[6].date));
-
-            let html = `
-                <div class="week-header">
-                    <div class="week-title">Vika ${{week.week_number}}</div>
-                    <div class="week-dates">${{startDate}} - ${{endDate}}</div>
-                </div>
-                <div class="days-grid">
-            `;
-
+            let html = `<div class="week-header"><div class="week-title">Vika ${{week.week_number}}</div><div class="week-dates">${{startDate}} - ${{endDate}}</div></div><div class="days-grid">`;
             week.days.forEach(day => {{
                 const isWeekend = day.weekday === 'Laugardagur' || day.weekday === 'Sunnudagur';
                 const hasEvents = day.events && day.events.length > 0;
-                
-                html += `
-                    <div class="day-card ${{hasEvents ? 'has-event' : ''}} ${{isWeekend ? 'weekend' : ''}}">
-                        <div class="day-header">
-                            <div class="day-name">${{day.weekday}}</div>
-                            <div class="day-date">${{formatFullDate(day.date)}}</div>
-                        </div>
-                        <div class="events">
-                `;
-
+                html += `<div class="day-card ${{hasEvents ? 'has-event' : ''}} ${{isWeekend ? 'weekend' : ''}}"><div class="day-header"><div class="day-name">${{day.weekday}}</div><div class="day-date">${{formatFullDate(day.date)}}</div></div><div class="events">`;
                 if (hasEvents) {{
                     day.events.forEach(event => {{
                         const eventClass = getEventClass(event);
@@ -628,37 +371,16 @@ def generate_html(calendar_data, output_path):
                 }} else {{
                     html += `<span class="no-events">Engir sérstakir viðburðir</span>`;
                 }}
-
-                html += `
-                        </div>
-                    </div>
-                `;
+                html += `</div></div>`;
             }});
-
             html += `</div>`;
             display.innerHTML = html;
-
             document.getElementById('prevBtn').disabled = weekIndex === 0;
             document.getElementById('nextBtn').disabled = weekIndex === calendarData.weeks.length - 1;
             document.getElementById('weekSelect').value = weekIndex;
         }}
-
-        // Navigation
-        document.getElementById('prevBtn').addEventListener('click', () => {{
-            if (currentWeekIndex > 0) {{
-                currentWeekIndex--;
-                displayWeek(currentWeekIndex);
-            }}
-        }});
-
-        document.getElementById('nextBtn').addEventListener('click', () => {{
-            if (currentWeekIndex < calendarData.weeks.length - 1) {{
-                currentWeekIndex++;
-                displayWeek(currentWeekIndex);
-            }}
-        }});
-
-        // Initialize
+        document.getElementById('prevBtn').addEventListener('click', () => {{ if (currentWeekIndex > 0) {{ currentWeekIndex--; displayWeek(currentWeekIndex); }} }});
+        document.getElementById('nextBtn').addEventListener('click', () => {{ if (currentWeekIndex < calendarData.weeks.length - 1) {{ currentWeekIndex++; displayWeek(currentWeekIndex); }} }});
         currentWeekIndex = findCurrentWeek();
         populateWeekSelector();
         displayWeek(currentWeekIndex);
@@ -666,25 +388,20 @@ def generate_html(calendar_data, output_path):
 </body>
 </html>'''
     
-    # Búa til fullkomið HTML
     html_content = html_template.format(
         school=calendar_data['school'],
         year=calendar_data['year'],
         calendar_json=json.dumps(calendar_data, ensure_ascii=False, indent=2)
     )
     
-    # Vista HTML
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
     
     print(f"✅ HTML skjal tilbúið!")
 
 def main():
-    """Aðalforrit"""
-    
     if len(sys.argv) < 2:
         print("Notkun: python generate_calendar.py <pdf_skra> [html_output]")
-        print("Dæmi: python generate_calendar.py skoladagatal.pdf index.html")
         sys.exit(1)
     
     pdf_path = sys.argv[1]
@@ -698,20 +415,15 @@ def main():
     print("🎓 SKÓLADAGATAL GENERATOR")
     print("=" * 50)
     
-    # 1. Les PDF
     pdf_data = parse_calendar_pdf(pdf_path)
-    
-    # 2. Býr til vikugögn
     weeks = generate_weeks_data(pdf_data['events'], pdf_data['year'])
     
-    # 3. Setur saman gögn
     calendar_data = {
         'school': pdf_data['school'],
         'year': pdf_data['year'],
         'weeks': weeks
     }
     
-    # 4. Býr til HTML
     generate_html(calendar_data, output_path)
     
     print("=" * 50)
